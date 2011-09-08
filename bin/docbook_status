@@ -1,0 +1,87 @@
+#!/usr/bin/env ruby
+# -*-encoding:utf-8 ; mode:ruby-*-
+##
+# docbook_status is the commandline application for the library.
+# Its main purpose is to display the structure and word counts for DocBook 5 documents.
+# docbook_status can be used in single-run mode or demon-mode. In demon_mode it stays active
+# and looks for changes in the filesystem.
+#
+
+require 'rubygems'
+require "bundler/setup"
+require 'optparse'
+require 'directory_watcher'
+
+require File.expand_path(File.join(File.dirname(__FILE__), %w[.. lib docbook_status]))
+
+@demon = false
+@glob = '*.xml'
+@dir = '.'
+@pre = []
+banner = <<EOB
+docbook_status, Version #{DocbookStatus.version}
+
+Display DocBook 5 document structure and word counts.
+
+Usage: docbook_status [--demon] [--glob <PATTERN>] [--dir <DIR>] [--pre COMMAND] <DOCBOOK-FILE>
+EOB
+
+opts = OptionParser.new
+opts.banner = banner
+opts.on('--demon', 'Keep running, act when files change') {|val| @demon = true}
+opts.on('--glob PATTERN', String, 'File mask for demon mode, default = "*.xml"') {|val| @glob = val}
+opts.on('--dir DIR', String, 'Source directory for demon mode, default = "." ') {|val| @dir = val}
+opts.on('--pre COMMAND', String, 'A shell command that should be executed before') {|val| @pre << val}
+rest = opts.parse(ARGV)
+
+def run(file)
+  @pre.each {|cmd| system(cmd)}
+  doc = XML::Document.file(file)
+  dbs = DocbookStatus.new
+  if !dbs.is_docbook?(doc)
+    puts "Error: #{file} is apparently not DocBook 5."
+    return
+  end
+  doc.xinclude if dbs.has_xinclude?(doc)
+  sections = dbs.analyze_document(doc)
+  puts
+  puts "File:               #{file}"
+  puts "Modified:           #{File.ctime(file)}"
+  puts "Document structure:"
+  puts "%-50.50s %-16s %5s" % ['Title','Tag','Words']
+  puts "-"*73
+  sections.each do |s|
+    puts "%-50.50s %-16s %5d" % [(' ' * s[2])+s[0], s[3], s[1]]
+  end
+end
+
+def demon(file)
+  dw = DirectoryWatcher.new @dir, :glob => @glob, :pre_load => true
+  dw.interval = 5.0
+  dw.stable = 2
+  dw.persist = "dw_state.yml"
+  dw.add_observer {|*args|
+    args.each {|event|
+      #puts event
+      if event.type == :stable
+        run(file)
+      end
+    }
+  }
+  dw.start    # loads state from dw_state.yml
+  STDIN.gets  # when the user hits "enter" the script will terminate
+  dw.stop     # stores state to dw_state.yml
+end
+
+# Print banner if called without arguments
+if rest.length < 1
+  puts opts.to_s
+  exit 1
+end
+
+puts("docbook_status, Version #{DocbookStatus.version}")
+run(rest[0])
+if (@demon)
+  demon(rest[0])
+end
+exit 0
