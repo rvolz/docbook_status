@@ -1,4 +1,4 @@
-
+#-*- encoding:utf-8 ; mode:ruby -*-
 begin
   require 'bones'
 rescue LoadError
@@ -13,5 +13,6 @@ Bones {
   authors  'Rainer Volz'
   email    'dev@textmulch.de'
   url      'http://projekte.textmulch.de/docbook_status/'
+  depend_on     'directory_watcher'
+  depend_on     'libxml_ruby', '2.2.2'
 }
-
