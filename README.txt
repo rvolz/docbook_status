@@ -23,7 +23,7 @@ In demon-mode the application checks the files matched by the _glob_ pattern in 
 
 == Download
 
-https://rubygems.org/gem/docbook_status
+https://rubygems.org/gems/docbook_status
 
 == Requirements
 

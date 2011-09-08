@@ -12,6 +12,6 @@ Bones {
   name     'docbook_status'
   authors  'Rainer Volz'
   email    'dev@textmulch.de'
-  url      'http://projekte.textmuch.de/docbook_status/'
+  url      'http://projekte.textmulch.de/docbook_status/'
 }
 
