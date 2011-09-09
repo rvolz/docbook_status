@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 # -*-encoding:utf-8 ; mode:ruby-*-
 ##
-# docbook_status is the commandline application for the library.
-# Its main purpose is to display the structure and word counts for DocBook 5 documents.
-# docbook_status can be used in single-run mode or demon-mode. In demon_mode it stays active
-# and looks for changes in the filesystem.
+# docbook_status is the commandline application for the library.  Its
+# main purpose is to display the structure and word counts for DocBook
+# 5 documents. docbook_status can be used in single-run mode or
+# demon-mode. In demon-mode it stays active and looks for changes in
+# the filesystem.
 #
 
 require 'rubygems'
@@ -34,8 +35,21 @@ opts.on('--dir DIR', String, 'Source directory for demon mode, default = "." ') 
 opts.on('--pre COMMAND', String, 'A shell command that should be executed before') {|val| @pre << val}
 rest = opts.parse(ARGV)
 
+# Processes the DocBook document once. Runs first all defined
+# preprocessing (--pre) commands. Checks then for a DocBook namespace
+# declaration, which would imply DocBook 5. If the namespaces include
+# the XInclude-NS, XInclude-processing is started. At last the
+# resulting document is analyzed.
+#
 def run(file)
-  @pre.each {|cmd| system(cmd)}
+  # OPTIMIZE Detailed output for --pre commands with popen4?
+  @pre.each { |cmd|
+    ret = system(cmd)
+    unless ret
+        puts "Error: This preprocessing command signalled failure (#{$?}), please check --> #{cmd}"
+        return
+    end
+  }
   doc = XML::Document.file(file)
   dbs = DocbookStatus.new
   if !dbs.is_docbook?(doc)
@@ -55,6 +69,11 @@ def run(file)
   end
 end
 
+# Demon routine for continuous processing of a DocBook document.
+# This routine calls _run_ whenever the filesystem signals changes. To
+# reduce load it waits for a defined time (interval * stable) before
+# starting the actual processing.
+#
 def demon(file)
   dw = DirectoryWatcher.new @dir, :glob => @glob, :pre_load => true
   dw.interval = 5.0
@@ -79,6 +98,7 @@ if rest.length < 1
   exit 1
 end
 
+# The main routine
 puts("docbook_status, Version #{DocbookStatus.version}")
 run(rest[0])
 if (@demon)
