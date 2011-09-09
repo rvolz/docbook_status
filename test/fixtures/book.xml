@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<book xmlns="http://docbook.org/ns/docbook" 
+<book xmlns="http://docbook.org/ns/docbook"
 	xmlns:xi="http://www.w3.org/2001/XInclude"
 	version="5.0">
   <title>B1</title>
@@ -9,6 +9,18 @@
        Dies ist ein Test .. Dies ist ein  Test.
        In den Jahren 1900-1901 geschahen viele Überfälle von O`Reillys.
     </para>
+    <formalpara>
+      <title>Titel</title>
+      <para>
+        Lorem ipsum dolor sit amet, consectetuer adipiscing
+        elit. Aenean commodo ligula eget dolor. Aenean massa.
+      </para>
+    </formalpara>
+    <simpara>
+      Cum sociis natoque penatibus et magnis dis parturient montes,
+      nascetur ridiculus mus. Donec quam felis, ultricies nec,
+      pellentesque eu, pretium quis, sem.
+    </simpara>
   </chapter>
   <xi:include href="chapter2.xml"/>
 </book>

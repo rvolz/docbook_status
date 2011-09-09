@@ -6,7 +6,7 @@ require 'xml'
 #
 class DocbookStatus
 
-  # :stopdoc                  
+  # :stopdoc
   #
   PATH = File.expand_path('../..', __FILE__) + File::SEPARATOR
   LIBPATH = File.expand_path('..', __FILE__) + File::SEPARATOR
@@ -16,25 +16,32 @@ class DocbookStatus
   # :startdoc
 
   # The DocBook 5 namespace URL
+  #
   DOCBOOK_NS = 'http://docbook.org/ns/docbook'
+
   # The XInclude namespace URL
+  #
   XINCLUDE_NS = 'http://www.w3.org/2001/XInclude'
 
-  # Elements whose contents is counted as text
-  @@text_elements = ['para','simpara','formalpara']
+  # Elements whose contents is counted as text. The _formalpara_
+  # elements are included implicitly because they contain _para_ child
+  # elements.
+  #
+  @@text_elements = ['para','simpara']
 
   # Section elements, following the list given in http://docbook.org/tdg5/en/html/ch02.html#roots
-  # except for the refsect... elements. 
+  # except for the refsect... elements.
+  #
   @@section_elements = %w[
-    acknowledgements appendix article 
-    bibliography book 
-    chapter colophon 
-    dedication 
-    glossary 
+    acknowledgements appendix article
+    bibliography book
+    chapter colophon
+    dedication
+    glossary
     index
-    preface  
-    section sect1 sect2 sect3 sect4 set simplesect 
-    toc 
+    preface
+    section sect1 sect2 sect3 sect4 set simplesect
+    toc
   ]
 
   def initialize
@@ -45,10 +52,10 @@ class DocbookStatus
   #
   def self.version
     VERSION
-  end  
+  end
 
-  # Counts the words in the contents of the given node. _Word_ in this  
-  # context means something that is delimited by _space_ charactes and starts with 
+  # Counts the words in the contents of the given node. _Word_ in this
+  # context means something that is delimited by _space_ charactes and starts with
   # _word_ characters (in the regexp sense).
   #
   def count_words(node)
@@ -74,7 +81,7 @@ class DocbookStatus
 
   # Check the document elements for content and type recursively,
   # starting at the current node.  Returns an array with paragraph and
-  # section maps.                         
+  # section maps.
   #
   def check_node(node, level, ctr)
     if (@@text_elements.include? node.name)

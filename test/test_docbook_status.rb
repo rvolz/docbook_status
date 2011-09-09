@@ -49,7 +49,7 @@ EOI
       ind.xinclude
     end
     sections = dbs.analyze_document(ind)
-    sections.must_equal([['B1', 34, 0, 'book'],['C1', 17, 1, 'chapter'],['C2', 17, 1, 'chapter']])
+    sections.must_equal([['B1', 71, 0, 'book'],['C1', 54, 1, 'chapter'],['C2', 17, 1, 'chapter']])
   end
 
 end
