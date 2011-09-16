@@ -39,13 +39,14 @@ class DocbookStatus
     dedication
     glossary
     index
-    preface
+    part preface
     section sect1 sect2 sect3 sect4 set simplesect
     toc
   ]
 
   def initialize
     @sections = []
+    XML.default_line_numbers=true
   end
 
   # Returns the version of docbook_status
@@ -61,6 +62,18 @@ class DocbookStatus
   def count_words(node)
     words = node.content.strip.split(/[[:space:]]+/).find_all {|w| w =~ /\w+/}
     words.size
+  end
+
+  # Counts the words in the contents of the given node.
+  # It is assumed that the node is a kind of pure content (a paragraph) and therefore everything in it
+  # should be included in the word count. An exception to this are
+  # _remark_ elements, which are conisdered as comments, not meant for final publication.
+  #
+  def count_content_words(node)
+    ws = count_words(node)
+    # Count the remark text contained in the paragraph and subtract it from the real thing
+    wsr = node.find('db:remark').reduce(0) {|m,r| m+count_words(r)}
+    ws - wsr
   end
 
   # Find the _title_ of the current section. That element is either
@@ -85,12 +98,15 @@ class DocbookStatus
   #
   def check_node(node, level, ctr)
     if (@@text_elements.include? node.name)
-      ctr << {:type => :para, :level => level, :words => count_words(node)}
+      ctr << {:type => :para, :level => level, :words => count_content_words(node)}
     elsif (@@section_elements.include? node.name)
       title = find_section_title(node)
       ctr << {:type => :section, :level => level, :title => title, :name => node.name}
+      node.children.each {|inner_elem| check_node(inner_elem, level+1, ctr)} if node.children?
+    else
+      node.children.each {|inner_elem| check_node(inner_elem, level+1, ctr)} if node.children?
     end
-    node.children.each {|inner_elem| check_node(inner_elem, level+1, ctr)} if node.children?
+
     ctr
   end
 
@@ -112,6 +128,41 @@ class DocbookStatus
     ret
   end
 
+  # Finds and returns all XInclude files/URLs in a document.
+  #
+  # OPTIMIZE implement xpointer and fallback handling for
+  # xi:include? see http://www.w3.org/TR/xinclude/
+  #
+  def find_xincludes(doc)
+    xincs = doc.find('//xi:include', "xi:"+XINCLUDE_NS)
+    xincs.map {|x| x.attributes['href'] }
+  end
+
+  # Find all remark elements in the document and return a map for
+  # every such element. The map contains:
+  #
+  # * keyword: the first word of the content in uppercase (if the remark contains text), else the empty string
+  # * text: the content of the remark element, minus the keyword
+  # * path: the XPath of the remark element
+  # * parent: the XPath of the remark's parent
+  # * line: the line number in the source file
+  #
+  def find_remarks(doc)
+    rems = doc.find('//db:remark')
+    rems.map {|rem|
+      c = rem.content.strip
+      kw = ''
+      if rem.first.text?
+        kw1 = c.match('^\w+')
+        unless kw1.nil?
+          kw = kw1[0].upcase
+          c = kw1.post_match
+        end
+      end
+      {:keyword => kw, :text => c , :path => rem.path, :parent => rem.parent.path, :line => rem.line_num}
+    }
+  end
+
   # Searches the XML document for sections and word counts. Returns an
   # array of sections with their word counts.
   #
@@ -121,6 +172,7 @@ class DocbookStatus
     # Analyze the document starting with the root node
     doc_maps = check_node(doc.root,0,[])
     @sections = []
+    @remarks = []
     section_name = doc_maps[0][:title]
     section_type = doc_maps[0][:name]
     section_ctr = 0
@@ -144,7 +196,22 @@ class DocbookStatus
     @sections << [section_name,section_ctr,section_level,section_type]
     # Put the document word count near the document type
     @sections[0][1] = doc_ctr
+    # Find all remarks
+    @remarks = find_remarks(doc)
     @sections
+  end
+
+  # Return the remark-elements found in the document. If _keyword_ is
+  # nil then return all remarks, else only the ones with the right
+  # keyword.
+  #
+  def remarks(keyword=nil)
+    if keyword.nil?
+      @remarks
+    else
+      ukw = keyword.upcase
+      @remarks.find_all {|r| r[:keyword] == (ukw)}
+    end
   end
 
 end

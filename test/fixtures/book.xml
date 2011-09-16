@@ -12,6 +12,7 @@
     <formalpara>
       <title>Titel</title>
       <para>
+        <remark>Blindtext auswechseln</remark>
         Lorem ipsum dolor sit amet, consectetuer adipiscing
         elit. Aenean commodo ligula eget dolor. Aenean massa.
       </para>

@@ -31,6 +31,7 @@ opts = OptionParser.new
 opts.banner = banner
 opts.on('--demon', 'Keep running, act when files change') {|val| @demon = true}
 opts.on('--glob PATTERN', String, 'File mask for demon mode, default = "*.xml"') {|val| @glob = val}
+# FIXME DIR erweitern, relative Ausdrücke werden sonst nicht vom directory_watcher akzeptiert
 opts.on('--dir DIR', String, 'Source directory for demon mode, default = "." ') {|val| @dir = val}
 opts.on('--pre COMMAND', String, 'A shell command that should be executed before') {|val| @pre << val}
 rest = opts.parse(ARGV)
@@ -50,12 +51,15 @@ def run(file)
         return
     end
   }
+
+  XML.default_line_numbers = true
   doc = XML::Document.file(file)
   dbs = DocbookStatus.new
   if !dbs.is_docbook?(doc)
     puts "Error: #{file} is apparently not DocBook 5."
     return
   end
+
   doc.xinclude if dbs.has_xinclude?(doc)
   sections = dbs.analyze_document(doc)
   puts
@@ -66,6 +70,15 @@ def run(file)
   puts "-"*73
   sections.each do |s|
     puts "%-50.50s %-16s %5d" % [(' ' * s[2])+s[0], s[3], s[1]]
+  end
+  # puts "-"*73
+  puts
+  puts "Remarks:"
+  puts "%-16.16s %50.50s %5s" % ["Type","Content","Line"]
+  puts "-"*73
+  remarks = dbs.remarks
+  remarks.each do |r|
+    puts "%-16.16s %50.50s %5d" % ["[#{r[:keyword]}]",r[:text],r[:line]]
   end
 end
 
@@ -81,7 +94,7 @@ def demon(file)
   dw.persist = "dw_state.yml"
   dw.add_observer {|*args|
     args.each {|event|
-      #puts event
+      puts event
       if event.type == :stable
         run(file)
       end
