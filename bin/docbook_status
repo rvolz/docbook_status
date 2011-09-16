@@ -31,7 +31,6 @@ opts = OptionParser.new
 opts.banner = banner
 opts.on('--demon', 'Keep running, act when files change') {|val| @demon = true}
 opts.on('--glob PATTERN', String, 'File mask for demon mode, default = "*.xml"') {|val| @glob = val}
-# FIXME DIR erweitern, relative Ausdrücke werden sonst nicht vom directory_watcher akzeptiert
 opts.on('--dir DIR', String, 'Source directory for demon mode, default = "." ') {|val| @dir = val}
 opts.on('--pre COMMAND', String, 'A shell command that should be executed before') {|val| @pre << val}
 rest = opts.parse(ARGV)
@@ -81,6 +80,7 @@ def run(file)
     puts "%-16.16s %50.50s %5d" % ["[#{r[:keyword]}]",r[:text],r[:line]]
   end
 end
+
 
 # Demon routine for continuous processing of a DocBook document.
 # This routine calls _run_ whenever the filesystem signals changes. To

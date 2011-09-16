@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# -*- encoding:utf-8 -*-
 
 require 'xml'
 
@@ -156,7 +156,7 @@ class DocbookStatus
         kw1 = c.match('^\w+')
         unless kw1.nil?
           kw = kw1[0].upcase
-          c = kw1.post_match
+          c = kw1.post_match.lstrip
         end
       end
       {:keyword => kw, :text => c , :path => rem.path, :parent => rem.parent.path, :line => rem.line_num}
