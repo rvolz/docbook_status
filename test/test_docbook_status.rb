@@ -68,7 +68,7 @@ EOI
     end
     sections = dbs.analyze_document(ind)
     all_remarks = dbs.remarks()
-    all_remarks.must_equal([{:keyword=>"BLINDTEXT", :text=>"auswechseln", :path=>"/*/*[2]/*[3]/*[2]/*", :parent=>"/*/*[2]/*[3]/*[2]", :line=>15}, {:keyword=>"FIXME", :text=>"Ausbauen.", :path=>"/*/*[3]/*[2]/*", :parent=>"/*/*[3]/*[2]", :line=>6}])
+    all_remarks.must_equal([{:keyword=>"REMARK", :text=>"Blindtext auswechseln", :path=>"/*/*[2]/*[3]/*[2]/*", :parent=>"/*/*[2]/*[3]/*[2]", :line=>15}, {:keyword=>"FIXME", :text=>"Ausbauen.", :path=>"/*/*[3]/*[2]/*", :parent=>"/*/*[3]/*[2]", :line=>6}])
     fixmes = dbs.remarks('FIXME')
     fixmes.must_equal([{:keyword => 'FIXME', :text => 'Ausbauen.', :path => '/*/*[3]/*[2]/*', :parent => '/*/*[3]/*[2]', :line => 6}])
   end

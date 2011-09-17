@@ -141,21 +141,23 @@ class DocbookStatus
   # Find all remark elements in the document and return a map for
   # every such element. The map contains:
   #
-  # * keyword: the first word of the content in uppercase (if the remark contains text), else the empty string
+  # * keyword: if the first word of the content is uppercase that is the keyword, else _REMARK_
   # * text: the content of the remark element, minus the keyword
   # * path: the XPath of the remark element
   # * parent: the XPath of the remark's parent
   # * line: the line number in the source file
   #
+  # OPTIMIZE look for 'role' attributes as keyords?
+  #
   def find_remarks(doc)
     rems = doc.find('//db:remark')
     rems.map {|rem|
       c = rem.content.strip
-      kw = ''
+      kw = 'REMARK'
       if rem.first.text?
-        kw1 = c.match('^\w+')
+        kw1 = c.match('^([[:upper:]]+)([[:space:][:punct:]]|$)')
         unless kw1.nil?
-          kw = kw1[0].upcase
+          kw = kw1[1]
           c = kw1.post_match.lstrip
         end
       end

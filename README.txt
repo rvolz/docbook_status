@@ -2,24 +2,24 @@
 
 A utility for DocBook authors/publishers showing the document structure (sections) and word count of a DocBook project. It is intended to provide an overview of a DocBook project's structure and volume while you are writing or editing it.
 
-	
 == Features
 
 * lists all sections (set, book, ... section, simplesect) in a DocBook file
 * calculates a word count for each section (words in paras, simparas and formalparas)
 * works with included sections (XInclude)
+* finds and lists remarks (remarks are not included in the word count)
 
 == Examples
 
-The package includes a comandline application, bin/docbook_status, that can be used in two ways:
+The package includes a comandline application, bin/docbook_status that can be used in two ways:
 
 to run it manually, once:
    docbook_status <DocBook file>
 
 to run the application in demon mode, continually:
    docbook_status --demon --glob "*.xml" --dir "." <DocBook file>
-   
-In demon-mode the application checks the files matched by the _glob_ pattern in the directory specified by _dir_ for changes, and redisplays the document analysis whenever a change occures. The demon can be termanted by simply pressing RETURN. 
+
+In demon-mode the application checks the files matched by the _glob_ pattern in the directory specified by _dir_ for changes, and redisplays the document analysis whenever a change occures. The demon can be termanted by simply pressing RETURN.
 
 == Download
 
