@@ -31,7 +31,7 @@ opts = OptionParser.new
 opts.banner = banner
 opts.on('--demon', 'Keep running, act when files change') {|val| @demon = true}
 opts.on('--glob PATTERN', String, 'File mask for demon mode, default = "*.xml"') {|val| @glob = val}
-opts.on('--dir DIR', String, 'Source directory for demon mode, default = "." ') {|val| @dir = val}
+opts.on('--dir DIR', String, 'Source directory for demon mode, default = "." ') {|val| @dir = File.expand_path(val)}
 opts.on('--pre COMMAND', String, 'A shell command that should be executed before') {|val| @pre << val}
 rest = opts.parse(ARGV)
 
@@ -51,33 +51,29 @@ def run(file)
     end
   }
 
-  XML.default_line_numbers = true
-  doc = XML::Document.file(file)
-  dbs = DocbookStatus.new
-  if !dbs.is_docbook?(doc)
-    puts "Error: #{file} is apparently not DocBook 5."
-    return
-  end
+  dbs = DocbookStatus.new(file)
+  # if !dbs.is_docbook?
+  #   puts "Error: #{file} is apparently not DocBook 5."
+  #   return
+  # end
 
-  doc.xinclude if dbs.has_xinclude?(doc)
-  sections = dbs.analyze_document(doc)
+  sections = dbs.analyze_file
   puts
   puts "File:               #{file}"
   puts "Modified:           #{File.ctime(file)}"
   puts "Document structure:"
-  puts "%-50.50s %-16s %5s" % ['Title','Tag','Words']
-  puts "-"*73
+  puts "%-57.57s %-16s %5s" % ['Title','Tag','Words']
+  puts "-"*80
   sections.each do |s|
-    puts "%-50.50s %-16s %5d" % [(' ' * s[2])+s[0], s[3], s[1]]
+    puts "%-57.57s %-16s %5d" % [(' ' * s[2])+s[0], s[3], s[1]]
   end
-  # puts "-"*73
   puts
   puts "Remarks:"
-  puts "%-16.16s %50.50s %5s" % ["Type","Content","Line"]
-  puts "-"*73
-  remarks = dbs.remarks
+  puts "%-10s %10s %5s %-52s" % %w[Type File Line Content]
+  puts "-"*80
+  remarks = dbs.find_remarks
   remarks.each do |r|
-    puts "%-16.16s %50.50s %5d" % ["[#{r[:keyword]}]",r[:text],r[:line]]
+    puts "%-10.10s %10s %5d %-52.52s" % ["#{r[:keyword]}",r[:file],r[:line],r[:text]]
   end
 end
 

@@ -6,14 +6,14 @@ require 'xml'
 #
 class DocbookStatus
 
-  # :stopdoc
+  # :stopdoc:
   #
   PATH = File.expand_path('../..', __FILE__) + File::SEPARATOR
   LIBPATH = File.expand_path('..', __FILE__) + File::SEPARATOR
   VERSION = File.read(PATH + '/version.txt').strip
   HOME = File.expand_path(ENV['HOME'] || ENV['USERPROFILE'])
   #
-  # :startdoc
+  # :startdoc:
 
   # The DocBook 5 namespace URL
   #
@@ -44,8 +44,13 @@ class DocbookStatus
     toc
   ]
 
-  def initialize
+  def initialize(fname=nil)
     @sections = []
+    @remarks = []
+    @source = fname
+    @source_dir = fname.nil? ? nil : File.dirname(fname)
+    @source_file = fname.nil? ? nil : File.basename(fname)
+    @doc = nil
     XML.default_line_numbers=true
   end
 
@@ -53,6 +58,19 @@ class DocbookStatus
   #
   def self.version
     VERSION
+  end
+
+  # Return the remark-elements found in the document. If _keyword_ is
+  # nil then return all remarks, else only the ones with the right
+  # keyword.
+  #
+  def remarks(keyword=nil)
+    if keyword.nil?
+      @remarks
+    else
+      ukw = keyword.upcase
+      @remarks.find_all {|r| r[:keyword] == (ukw)}
+    end
   end
 
   # Counts the words in the contents of the given node. _Word_ in this
@@ -111,8 +129,8 @@ class DocbookStatus
   end
 
   # Check whether the document has a DocBook default namespace
-  def is_docbook?(doc)
-    dbns = doc.root.namespaces.default
+  def is_docbook?()
+    dbns = @doc.root.namespaces.default
     (!dbns.nil? && (dbns.href.casecmp(DOCBOOK_NS) == 0))
   end
 
@@ -134,8 +152,17 @@ class DocbookStatus
   # xi:include? see http://www.w3.org/TR/xinclude/
   #
   def find_xincludes(doc)
-    xincs = doc.find('//xi:include', "xi:"+XINCLUDE_NS)
-    xincs.map {|x| x.attributes['href'] }
+    if has_xinclude?(doc)
+      xincs = doc.find('//xi:include', "xi:"+XINCLUDE_NS)
+      xfiles = xincs.map {|x| x.attributes['href'] }
+      (xfiles << xfiles.map {|xf|
+                   xfn = File.exists?(xf) ? xf : File.expand_path(xf,File.dirname(doc.root.base_uri))
+                   xdoc = XML::Document.file(xfn)
+                   find_xincludes(xdoc)
+                 }).flatten
+    else
+      []
+    end
   end
 
   # Find all remark elements in the document and return a map for
@@ -147,9 +174,9 @@ class DocbookStatus
   # * parent: the XPath of the remark's parent
   # * line: the line number in the source file
   #
-  # OPTIMIZE look for 'role' attributes as keyords?
+  # OPTIMIZE look for 'role' attributes as keywords?
   #
-  def find_remarks(doc)
+  def find_remarks_in_doc(doc,source)
     rems = doc.find('//db:remark')
     rems.map {|rem|
       c = rem.content.strip
@@ -161,8 +188,27 @@ class DocbookStatus
           c = kw1.post_match.lstrip
         end
       end
-      {:keyword => kw, :text => c , :path => rem.path, :parent => rem.parent.path, :line => rem.line_num}
+      {:keyword => kw, :text => c , :path => rem.path, :parent => rem.parent.path,
+        :file=>source, :line => rem.line_num}
     }
+  end
+
+  # Finds the remarks by looking through all the Xincluded files
+  #
+  def find_remarks
+    if (@source.nil?)
+      rfiles = find_xincludes(@doc)
+    else
+      @doc = XML::Document.file(@source)
+      rfiles = [@source_file] + find_xincludes(@doc)
+    end
+    @remarks = rfiles.map {|rf|
+      ind = XML::Document.file(File.expand_path(rf,@source.nil? ? '.' : @source_dir))
+      ind.root.namespaces.default_prefix = 'db'
+      rems = find_remarks_in_doc(ind, rf)
+      rems
+    }.flatten
+    @remarks
   end
 
   # Searches the XML document for sections and word counts. Returns an
@@ -174,7 +220,6 @@ class DocbookStatus
     # Analyze the document starting with the root node
     doc_maps = check_node(doc.root,0,[])
     @sections = []
-    @remarks = []
     section_name = doc_maps[0][:title]
     section_type = doc_maps[0][:name]
     section_ctr = 0
@@ -198,22 +243,14 @@ class DocbookStatus
     @sections << [section_name,section_ctr,section_level,section_type]
     # Put the document word count near the document type
     @sections[0][1] = doc_ctr
-    # Find all remarks
-    @remarks = find_remarks(doc)
     @sections
   end
 
-  # Return the remark-elements found in the document. If _keyword_ is
-  # nil then return all remarks, else only the ones with the right
-  # keyword.
   #
-  def remarks(keyword=nil)
-    if keyword.nil?
-      @remarks
-    else
-      ukw = keyword.upcase
-      @remarks.find_all {|r| r[:keyword] == (ukw)}
-    end
+  def analyze_file
+    @doc = XML::Document.file(@source)
+    @doc.xinclude if has_xinclude?(@doc)
+    analyze_document(@doc)
   end
 
 end
