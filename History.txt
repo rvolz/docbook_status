@@ -1,5 +1,6 @@
-== 0.2.0? / ??
+== 0.2.0 / 2011-09-18
 
+* Added remarks listing.
 * Minor fixes
 ** removed _formalpara_ from the list of countable text elements because they contain _para_ elements
 
