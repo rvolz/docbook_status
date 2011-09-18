@@ -19,12 +19,15 @@ require File.expand_path(File.join(File.dirname(__FILE__), %w[.. lib docbook_sta
 @glob = '*.xml'
 @dir = '.'
 @pre = []
+@remarks = false
+@remarks_filter = []
+
 banner = <<EOB
 docbook_status, Version #{DocbookStatus.version}
 
 Display DocBook 5 document structure and word counts.
 
-Usage: docbook_status [--demon] [--glob <PATTERN>] [--dir <DIR>] [--pre COMMAND] <DOCBOOK-FILE>
+Usage: docbook_status [--demon] [--glob <PATTERN>] [--dir <DIR>] [--pre COMMAND] [--remarks[=FILTER]] <DOCBOOK-FILE>
 EOB
 
 opts = OptionParser.new
@@ -33,6 +36,12 @@ opts.on('--demon', 'Keep running, act when files change') {|val| @demon = true}
 opts.on('--glob PATTERN', String, 'File mask for demon mode, default = "*.xml"') {|val| @glob = val}
 opts.on('--dir DIR', String, 'Source directory for demon mode, default = "." ') {|val| @dir = File.expand_path(val)}
 opts.on('--pre COMMAND', String, 'A shell command that should be executed before') {|val| @pre << val}
+opts.on('--remarks[=FILTER]', String, 'Show the remarks, comments. Use a keyword FILTER to restrict the listing') {|val|
+  @remarks = true
+  unless (val.nil? || val.empty?)
+    @remarks_filter << val
+  end
+}
 rest = opts.parse(ARGV)
 
 # Processes the DocBook document once. Runs first all defined
@@ -52,11 +61,6 @@ def run(file)
   }
 
   dbs = DocbookStatus.new(file)
-  # if !dbs.is_docbook?
-  #   puts "Error: #{file} is apparently not DocBook 5."
-  #   return
-  # end
-
   sections = dbs.analyze_file
   puts
   puts "File:               #{file}"
@@ -67,13 +71,15 @@ def run(file)
   sections.each do |s|
     puts "%-57.57s %-16s %5d" % [(' ' * s[2])+s[0], s[3], s[1]]
   end
-  puts
-  puts "Remarks:"
-  puts "%-10s %10s %5s %-52s" % %w[Type File Line Content]
-  puts "-"*80
-  remarks = dbs.find_remarks
-  remarks.each do |r|
-    puts "%-10.10s %10s %5d %-52.52s" % ["#{r[:keyword]}",r[:file],r[:line],r[:text]]
+  if @remarks
+    puts
+    puts "Remarks:"
+    puts "%-10s %10s %5s %-52s" % %w[Type File Line Content]
+    puts "-"*80
+    remarks = dbs.find_remarks(@remarks_filter)
+    remarks.each do |r|
+      puts "%-10.10s %10s %5d %-52.52s" % ["#{r[:keyword]}",r[:file],r[:line],r[:text]]
+    end
   end
 end
 

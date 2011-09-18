@@ -44,6 +44,8 @@ class DocbookStatus
     toc
   ]
 
+  attr_reader :doc
+
   def initialize(fname=nil)
     @sections = []
     @remarks = []
@@ -129,8 +131,8 @@ class DocbookStatus
   end
 
   # Check whether the document has a DocBook default namespace
-  def is_docbook?()
-    dbns = @doc.root.namespaces.default
+  def is_docbook?(doc)
+    dbns = doc.root.namespaces.default
     (!dbns.nil? && (dbns.href.casecmp(DOCBOOK_NS) == 0))
   end
 
@@ -195,7 +197,7 @@ class DocbookStatus
 
   # Finds the remarks by looking through all the Xincluded files
   #
-  def find_remarks
+  def find_remarks(filter=[])
     if (@source.nil?)
       rfiles = find_xincludes(@doc)
     else
@@ -208,7 +210,13 @@ class DocbookStatus
       rems = find_remarks_in_doc(ind, rf)
       rems
     }.flatten
-    @remarks
+    if (filter.empty?)
+      @remarks
+    else
+      filter.map {|f|
+        @remarks.find_all {|r| f.casecmp(r[:keyword]) == 0}
+      }.flatten
+    end
   end
 
   # Searches the XML document for sections and word counts. Returns an
@@ -246,9 +254,12 @@ class DocbookStatus
     @sections
   end
 
+  # Open the XML document, check for the DocBook5 namespace and finally
+  # apply Xinclude tretement to it, if it has a XInclude namespace.
   #
   def analyze_file
     @doc = XML::Document.file(@source)
+    raise ArgumentError, "Error: #{@source} is apparently not DocBook 5." unless is_docbook?(@doc)
     @doc.xinclude if has_xinclude?(@doc)
     analyze_document(@doc)
   end

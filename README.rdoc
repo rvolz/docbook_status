@@ -1,0 +1,79 @@
+= docbook_status
+
+A utility for DocBook authors/publishers showing the document structure (sections) and word count of a DocBook project. It is intended to provide an overview of a DocBook project's structure and volume while you are writing or editing it.
+
+== Features
+
+* lists the section hierarchy (set, book, ... section, simplesect) in a DocBook file
+* calculates a word count for each section (words in paras, simparas and formalparas)
+* works with included sections (XInclude)
+* finds and lists remarks (remarks are not included in the word count)
+
+== Synopsis
+
+docbook_status is mainly a comandline application, bin/docbook_status, that helps with writing and editing DocBook 5 documents. The application provides information about the content of a DocBook project. That project can consist of a single file or of several files that are included in the master file via XInclude.
+
+To run docbook_status manually:
+
+   docbook_status myproject.xml
+
+This will show the section hierarchy and the word count of the individual sections of myproject.xml.
+
+If the file contains editing remarks, you could list them, too:
+
+   docbook_status --remarks myproject.xml
+
+Here docbook_status looks for all _remark_ elements. The application uses the same convention as many source code tools: if the content of the remark element starts with a all-uppercase word, like FIXME or TODO, this will be listed as the remark type, otherwise just REMARK will be used.
+
+If there are many remarks and you just want to concentrate on the most important ones, let's say the FIXMEs, you could restrict the listing with:
+
+   docbook_status --remarks=FIXME myproject.xml
+
+If you need to preprocess the XML before feeding it to docbook_status, there is an option for that:
+
+   docbook_status --pre "asciddoc -bdocbook50 myproject.txt" myproject.xml
+
+--pre takes shell commands as arguments and executues them before starting the analysis on the XML file.
+
+Finally, if you are tired to run docbook_status manually each time you changed your file, you could run the application in demon mode, continually:
+
+   docbook_status --demon --glob "*.xml" --dir "." myproject.xml
+
+In demon-mode the application checks the files matched by the _glob_ pattern in the directory specified by _dir_ for changes, and redisplays the document analysis whenever a change occures. The demon can be terminated by simply pressing RETURN.
+
+== Download
+
+https://rubygems.org/gems/docbook_status
+
+== Requirements
+
+* libxml2
+
+== Install
+
+* gem install docbook_status
+
+== License
+
+The MIT License
+
+Copyright (c) 2011 Rainer Volz
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
