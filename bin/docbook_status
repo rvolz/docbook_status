@@ -96,7 +96,6 @@ def demon(file)
   dw.persist = "dw_state.yml"
   dw.add_observer {|*args|
     args.each {|event|
-      puts event
       if event.type == :stable
         run(file)
       end
