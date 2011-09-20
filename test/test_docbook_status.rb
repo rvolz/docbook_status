@@ -58,8 +58,8 @@ EOI
   it "returns the full file name and time" do
     dbs = DocbookStatus::Status.new('test/fixtures/book.xml')
     info = dbs.analyze_file
-    info[:name].must_equal(File.expand_path('.')+'/test/fixtures/book.xml')
-    info[:ts].to_s.must_equal('2011-09-20 13:43:23 +0200')
+    info[:file].must_equal(File.expand_path('.')+'/test/fixtures/book.xml')
+    info[:modified].to_s.must_equal('2011-09-20 13:43:23 +0200')
   end
 
   it "filters remarks while counting" do
@@ -82,9 +82,9 @@ EOI
     dbs = DocbookStatus::Status.new('test/fixtures/book.xml')
     all_remarks = dbs.find_remarks
     #all_remarks = dbs.remarks()
-    all_remarks.must_equal([{:keyword=>"REMARK", :text=>"Blindtext auswechseln", :path=>"/*/*[2]/*[3]/*[2]/*", :parent=>"/*/*[2]/*[3]/*[2]", :file=>"book.xml", :line=>15}, {:keyword=>"FIXME", :text=>"Ausbauen.", :path=>"/*/*[2]/*", :parent=>"/*/*[2]", :file=>"chapter2.xml", :line=>6}])
+    all_remarks.must_equal([{:keyword=>"REMARK", :text=>"Blindtext auswechseln", :file=>"book.xml", :line=>15}, {:keyword=>"FIXME", :text=>"Ausbauen.", :file=>"chapter2.xml", :line=>6}])
     fixmes = dbs.remarks('FIXME')
-    fixmes.must_equal([{:keyword=>"FIXME", :text=>"Ausbauen.", :path=>"/*/*[2]/*", :parent=>"/*/*[2]", :file=>"chapter2.xml", :line=>6}])
+    fixmes.must_equal([{:keyword=>"FIXME", :text=>"Ausbauen.", :file=>"chapter2.xml", :line=>6}])
   end
 
 end

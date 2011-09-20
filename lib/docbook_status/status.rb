@@ -159,8 +159,7 @@ module DocbookStatus
    #
    # * keyword: if the first word of the content is uppercase that is the keyword, else _REMARK_
    # * text: the content of the remark element, minus the keyword
-   # * path: the XPath of the remark element
-   # * parent: the XPath of the remark's parent
+   # * file: the name of the source file
    # * line: the line number in the source file
    #
    # OPTIMIZE look for 'role' attributes as keywords?
@@ -177,8 +176,8 @@ module DocbookStatus
            c = kw1.post_match.lstrip
          end
        end
-       {:keyword => kw, :text => c , :path => rem.path, :parent => rem.parent.path,
-         :file=>source, :line => rem.line_num}
+       # TODO XPath integrieren? :path => rem.path, :parent => rem.parent.path,
+       {:keyword => kw, :text => c, :file=>source, :line => rem.line_num}
      }
    end
 
@@ -252,7 +251,7 @@ module DocbookStatus
      raise ArgumentError, "Error: #{@source} is apparently not DocBook 5." unless is_docbook?(@doc)
      @doc.xinclude if has_xinclude?(@doc)
      sections = analyze_document(@doc)
-     {:name => full_name, :ts => changed, :sections => sections}
+     {:file => full_name, :modified => changed, :sections => sections}
    end
 
  end

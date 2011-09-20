@@ -12,6 +12,8 @@ require 'rubygems'
 require "bundler/setup"
 require 'optparse'
 require 'directory_watcher'
+require 'yaml'
+require 'json'
 
 require File.expand_path(File.join(File.dirname(__FILE__), %w[.. lib docbook_status]))
 
@@ -21,13 +23,14 @@ require File.expand_path(File.join(File.dirname(__FILE__), %w[.. lib docbook_sta
 @pre = []
 @remarks = false
 @remarks_filter = []
+@output_format = :screen
 
 banner = <<EOB
 docbook_status, Version #{DocbookStatus.version}
 
 Display DocBook 5 document structure and word counts.
 
-Usage: docbook_status [--demon] [--glob <PATTERN>] [--dir <DIR>] [--pre COMMAND] [--remarks[=FILTER]] <DOCBOOK-FILE>
+Usage: docbook_status [options] <DOCBOOK-FILE>
 EOB
 
 opts = OptionParser.new
@@ -42,7 +45,41 @@ opts.on('--remarks[=FILTER]', String, 'Show the remarks, comments. Use a keyword
     @remarks_filter << val
   end
 }
+opts.on('--outputformat=yaml|json',['json','yaml'],'Return the result in YAML or JSON format instead of printing it') {|format|
+  case
+  when format == 'yaml'
+    @output_format = :yaml
+  when format == 'json'
+    @output_format = :json
+  else
+    STDERR.puts "Unknown output format #{format}. Using screen output."
+    @output = :screen
+  end
+}
 rest = opts.parse(ARGV)
+
+# Format the output for the screen and print it
+#
+def output_terminal(doc_info)
+  puts
+  puts "File:               #{doc_info[:name]}"
+  puts "Modified:           #{doc_info[:ts]}"
+  puts "Document structure:"
+  puts "%-57.57s %-16s %5s" % ['Title','Tag','Words']
+  puts "-"*80
+  doc_info[:sections].each do |s|
+    puts "%-57.57s %-16s %5d" % [(' ' * s[:level])+s[:title], s[:tag], s[:words]]
+  end
+  if doc_info[:remarks]
+    puts
+    puts "Remarks:"
+    puts "%-10s %10s %5s %-52s" % %w[Type File Line Content]
+    puts "-"*80
+    doc_info[:remarks].each do |r|
+      puts "%-10.10s %10s %5d %-52.52s" % ["#{r[:keyword]}",r[:file],r[:line],r[:text]]
+    end
+  end
+end
 
 # Processes the DocBook document once. Runs first all defined
 # preprocessing (--pre) commands. Checks then for a DocBook namespace
@@ -55,31 +92,20 @@ def run(file)
   @pre.each { |cmd|
     ret = system(cmd)
     unless ret
-        puts "Error: This preprocessing command signalled failure (#{$?}), please check --> #{cmd}"
+        STDERR.puts "Error: This preprocessing command signalled failure (#{$?}), please check --> #{cmd}"
         return
     end
   }
-
   dbs = DocbookStatus::Status.new(file)
-  section_info = dbs.analyze_file
-  puts
-  puts "File:               #{section_info[:name]}"
-  puts "Modified:           #{section_info[:ts]}"
-  puts "Document structure:"
-  puts "%-57.57s %-16s %5s" % ['Title','Tag','Words']
-  puts "-"*80
-  section_info[:sections].each do |s|
-    puts "%-57.57s %-16s %5d" % [(' ' * s[:level])+s[:title], s[:tag], s[:words]]
-  end
-  if @remarks
-    puts
-    puts "Remarks:"
-    puts "%-10s %10s %5s %-52s" % %w[Type File Line Content]
-    puts "-"*80
-    remarks = dbs.find_remarks(@remarks_filter)
-    remarks.each do |r|
-      puts "%-10.10s %10s %5d %-52.52s" % ["#{r[:keyword]}",r[:file],r[:line],r[:text]]
-    end
+  doc_info = dbs.analyze_file
+  doc_info[:remarks] = dbs.find_remarks(@remarks_filter) if @remarks
+  case
+  when @output_format == :yaml
+    YAML.dump(doc_info,STDOUT)
+  when @output_format == :json
+    puts doc_info.to_json
+  else
+    output_terminal(doc_info)
   end
 end
 
@@ -113,7 +139,7 @@ if rest.length < 1
 end
 
 # The main routine
-puts("docbook_status, Version #{DocbookStatus.version}")
+puts("docbook_status, Version #{DocbookStatus.version}") if @output_format == :screen
 run(rest[0])
 if (@demon)
   demon(rest[0])

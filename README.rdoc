@@ -4,10 +4,11 @@ A utility for DocBook authors/publishers showing the document structure (section
 
 == Features
 
-* lists the section hierarchy (set, book, ... section, simplesect) in a DocBook file
+* lists the section hierarchy (set, book, ... section, simplesect) of a DocBook file
 * calculates a word count for each section (words in paras, simparas and formalparas)
 * works with included sections (XInclude)
 * finds and lists remarks (remarks are not included in the word count)
+* output in YAML and JSON format (optional)
 
 == Synopsis
 
@@ -40,6 +41,33 @@ Finally, if you are tired to run docbook_status manually each time you changed y
    docbook_status --demon --glob "*.xml" --dir "." myproject.xml
 
 In demon-mode the application checks the files matched by the _glob_ pattern in the directory specified by _dir_ for changes, and redisplays the document analysis whenever a change occures. The demon can be terminated by simply pressing RETURN.
+
+== Integration
+
+For integration with other tools, e.g. editors, there are other output formats available, JSON and YAML. Normally all output is formatted for output on a terminal screen, but the option _--outputformat_ alllows to specify a different output format, that is printed to STDOUT.
+
+Use
+
+   docbook_status --outputformat=yaml
+or
+   docbook_status --outputformat=json
+
+to get YAML or JSON structures back. The structure returned is equivalent to the normal terminal output:
+
+ * file - path to XML file
+ * modified - the modification time of the XML file
+
+ * sections - an array of section entries, each with
+  * title - section name
+  * words - word count
+  * level - section level in the document hierarchy
+  * tag - the section's DocBook tag
+
+ * remarks - (optional) an array of remark entries, each with
+  * keyword - uppercase keyword, e.g. REMARK, FIXME
+  * text - remark text
+  * file - file name, location of the remark
+  * line - line number, location of the remark
 
 == Download
 
