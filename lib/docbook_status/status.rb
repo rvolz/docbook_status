@@ -243,12 +243,16 @@ module DocbookStatus
 
    # Open the XML document, check for the DocBook5 namespace and finally
    # apply Xinclude tretement to it, if it has a XInclude namespace.
+   # Returns a map with the file name, the file's modification time, and the section structure.
    #
    def analyze_file
+     full_name = File.expand_path(@source)
+     changed  = File.ctime(@source)
      @doc = XML::Document.file(@source)
      raise ArgumentError, "Error: #{@source} is apparently not DocBook 5." unless is_docbook?(@doc)
      @doc.xinclude if has_xinclude?(@doc)
-     analyze_document(@doc)
+     sections = analyze_document(@doc)
+     {:name => full_name, :ts => changed, :sections => sections}
    end
 
  end

@@ -55,6 +55,13 @@ EOI
                          {:title => 'C2', :words => 17, :level => 1, :tag => 'chapter'}])
   end
 
+  it "returns the full file name and time" do
+    dbs = DocbookStatus::Status.new('test/fixtures/book.xml')
+    info = dbs.analyze_file
+    info[:name].must_equal(File.expand_path('.')+'/test/fixtures/book.xml')
+    info[:ts].to_s.must_equal('2011-09-20 13:43:23 +0200')
+  end
+
   it "filters remarks while counting" do
     dbs = DocbookStatus::Status.new()
     ind = XML::Document.file('test/fixtures/chapter2.xml')

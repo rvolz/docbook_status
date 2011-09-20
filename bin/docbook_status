@@ -61,14 +61,14 @@ def run(file)
   }
 
   dbs = DocbookStatus::Status.new(file)
-  sections = dbs.analyze_file
+  section_info = dbs.analyze_file
   puts
-  puts "File:               #{file}"
-  puts "Modified:           #{File.ctime(file)}"
+  puts "File:               #{section_info[:name]}"
+  puts "Modified:           #{section_info[:ts]}"
   puts "Document structure:"
   puts "%-57.57s %-16s %5s" % ['Title','Tag','Words']
   puts "-"*80
-  sections.each do |s|
+  section_info[:sections].each do |s|
     puts "%-57.57s %-16s %5d" % [(' ' * s[:level])+s[:title], s[:tag], s[:words]]
   end
   if @remarks
