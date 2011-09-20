@@ -207,7 +207,7 @@ module DocbookStatus
    end
 
    # Searches the XML document for sections and word counts. Returns an
-   # array of sections with their word counts.
+   # array of sections (map) with title, word count, section level and DocBook tag.
    #
    def analyze_document(doc)
      # Add a namespace declaration for XPath expressions
@@ -228,16 +228,16 @@ module DocbookStatus
          doc_ctr += m[:words]
          section_ctr += m[:words]
        else
-         @sections << [section_name,section_ctr,section_level,section_type]
+         @sections << {:title => section_name, :words => section_ctr, :level => section_level, :tag => section_type}
          section_name = m[:title]
          section_ctr = 0
          section_level = m[:level]
          section_type = m[:name]
        end
      end
-     @sections << [section_name,section_ctr,section_level,section_type]
+     @sections << {:title => section_name, :words => section_ctr, :level => section_level, :tag => section_type}
      # Put the document word count near the document type
-     @sections[0][1] = doc_ctr
+     @sections[0][:words] = doc_ctr
      @sections
    end
 

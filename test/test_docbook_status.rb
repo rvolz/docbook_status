@@ -39,7 +39,8 @@ EOI
     dbs = DocbookStatus::Status.new()
     ind = XML::Document.string(input)
     sections = dbs.analyze_document(ind)
-    sections.must_equal([['A1', 17, 0, 'article'],['S1', 17, 1, 'section']])
+    sections.must_equal([{:title => 'A1', :words => 17, :level => 0, :tag => 'article'},
+                         {:title => 'S1', :words => 17, :level => 1, :tag => 'section'}])
   end
 
   it "processes includes" do
@@ -49,14 +50,16 @@ EOI
       ind.xinclude
     end
     sections = dbs.analyze_document(ind)
-    sections.must_equal([['B1', 71, 0, 'book'],['C1', 54, 1, 'chapter'],['C2', 17, 1, 'chapter']])
+    sections.must_equal([{:title => 'B1', :words => 71, :level => 0, :tag => 'book'},
+                         {:title => 'C1', :words => 54, :level => 1, :tag => 'chapter'},
+                         {:title => 'C2', :words => 17, :level => 1, :tag => 'chapter'}])
   end
 
   it "filters remarks while counting" do
     dbs = DocbookStatus::Status.new()
     ind = XML::Document.file('test/fixtures/chapter2.xml')
     sections = dbs.analyze_document(ind)
-    sections.must_equal([['C2', 17, 0, 'chapter']])
+    sections.must_equal([{:title => 'C2', :words => 17, :level => 0, :tag => 'chapter'}])
   end
 
   it "finds and collects all XIncludes URLs in a document" do

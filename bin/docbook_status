@@ -69,7 +69,7 @@ def run(file)
   puts "%-57.57s %-16s %5s" % ['Title','Tag','Words']
   puts "-"*80
   sections.each do |s|
-    puts "%-57.57s %-16s %5d" % [(' ' * s[2])+s[0], s[3], s[1]]
+    puts "%-57.57s %-16s %5d" % [(' ' * s[:level])+s[:title], s[:tag], s[:words]]
   end
   if @remarks
     puts
