@@ -60,7 +60,7 @@ def run(file)
     end
   }
 
-  dbs = DocbookStatus.new(file)
+  dbs = DocbookStatus::Status.new(file)
   sections = dbs.analyze_file
   puts
   puts "File:               #{file}"
