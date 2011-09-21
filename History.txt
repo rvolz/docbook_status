@@ -1,5 +1,10 @@
 == 0.2.2 / ??
 
+* Writing goals (total and daily) can be defined and will be tracked
+* Added YAML and JSON output formats, available with option --outputformat
+* Minor fixes
+** Reorganized library
+
 == 0.2.1 / 2011-09-18
 
 * Minor fixes for Gem packaging

@@ -14,8 +14,15 @@ require 'optparse'
 require 'directory_watcher'
 require 'yaml'
 require 'json'
+require 'term/ansicolor'
+
+class String
+  include Term::ANSIColor
+end
 
 require File.expand_path(File.join(File.dirname(__FILE__), %w[.. lib docbook_status]))
+
+NOVAL = -1
 
 @demon = false
 @glob = '*.xml'
@@ -24,6 +31,9 @@ require File.expand_path(File.join(File.dirname(__FILE__), %w[.. lib docbook_sta
 @remarks = false
 @remarks_filter = []
 @output_format = :screen
+@total_words = NOVAL
+@daily_words = NOVAL
+@end_date = NOVAL
 
 banner = <<EOB
 docbook_status, Version #{DocbookStatus.version}
@@ -45,6 +55,20 @@ opts.on('--remarks[=FILTER]', String, 'Show the remarks, comments. Use a keyword
     @remarks_filter << val
   end
 }
+# TODO Implement planned end date?
+#opts.on('--end[=DATE]', DateTime, 'Goal: planned delivery date') {|val| @end_date = val}
+opts.on('--total[=WORDS]',Integer, 'Goal: total number of words') {|val|
+  if val.nil?
+    @total_words = 0
+  else
+    @total_words = val.abs
+  end}
+opts.on('--daily[=WORDS]',Integer, 'Goal: daily number of words') {|val|
+  if val.nil?
+    @daily_words = 0
+  else
+    @daily_words = val.abs
+  end}
 opts.on('--outputformat=yaml|json',['json','yaml'],'Return the result in YAML or JSON format instead of printing it') {|format|
   case
   when format == 'yaml'
@@ -58,12 +82,45 @@ opts.on('--outputformat=yaml|json',['json','yaml'],'Return the result in YAML or
 }
 rest = opts.parse(ARGV)
 
+# Color the actuals according to the schema
+def meter(actual,goal)
+  ad = actual / goal
+  case
+  when ad <= 0.3
+    actuals = actual.to_s.red.bold
+  when ad > 0.3 && ad <= 0.7
+    actuals = actual.to_s.red
+  when ad > 0.7 && ad < 1.0
+    actuals = actual.to_s.magenta
+  else
+    actuals = actual.to_s.green
+  end
+  actuals
+end
+
 # Format the output for the screen and print it
 #
 def output_terminal(doc_info)
   puts
-  puts "File:               #{doc_info[:name]}"
-  puts "Modified:           #{doc_info[:ts]}"
+  puts "File:               #{doc_info[:file]}"
+  puts "Modified:           #{doc_info[:modified]}"
+
+#  puts "Delivery:           #{doc_info[:goals][:start]} - #{doc_info[:goals][:end]}" unless doc_info[:goals][:end].nil?
+
+  unless (doc_info[:goals][:goal_total] == 0)
+    total = doc_info[:goals][:goal_total]
+    actual = doc_info[:sections][0][:words]
+    actuals = meter(actual,total)
+    puts "Goal, total:        #{actuals} / #{total} words"
+  end
+  unless (doc_info[:goals][:goal_daily] == 0)
+    # Coloring the actuals
+    daily = doc_info[:goals][:goal_daily]
+    actual = doc_info[:today][:end] - doc_info[:today][:start]
+    actuals = meter(actual,daily)
+    puts "Goal, daily:        #{actuals} / #{daily} words"
+  end
+
   puts "Document structure:"
   puts "%-57.57s %-16s %5s" % ['Title','Tag','Words']
   puts "-"*80
@@ -99,6 +156,14 @@ def run(file)
   dbs = DocbookStatus::Status.new(file)
   doc_info = dbs.analyze_file
   doc_info[:remarks] = dbs.find_remarks(@remarks_filter) if @remarks
+  dbs_h = DocbookStatus::History.new(file)
+  dbs_h.planned_end(@end_date) if @end_date != NOVAL
+  dbs_h.total_words(@total_words) if @total_words != NOVAL
+  dbs_h.daily_words(@daily_words) if @daily_words != NOVAL
+  dbs_h.add(DateTime.now,doc_info[:sections][0][:words])
+  dbs_h.save
+  doc_info[:goals] = dbs_h.goals
+  doc_info[:today] = dbs_h.today
   case
   when @output_format == :yaml
     YAML.dump(doc_info,STDOUT)
