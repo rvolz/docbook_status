@@ -84,7 +84,7 @@ rest = opts.parse(ARGV)
 
 # Color the actuals according to the schema
 def meter(actual,goal)
-  ad = actual / goal
+  ad = actual.to_f / goal.to_f
   case
   when ad <= 0.3
     actuals = actual.to_s.red.bold
