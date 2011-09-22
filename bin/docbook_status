@@ -83,19 +83,26 @@ opts.on('--outputformat=yaml|json',['json','yaml'],'Return the result in YAML or
 rest = opts.parse(ARGV)
 
 # Color the actuals according to the schema
+#
+# * bold red if <= 30%
+# * red if > 30% and <= 70%
+# * magenta if >70 and < 100%
+# * green if >= 100%
+#
 def meter(actual,goal)
   ad = actual.to_f / goal.to_f
+  percs = ""
   case
   when ad <= 0.3
-    actuals = actual.to_s.red.bold
+    fct = lambda {|s| s.red.bold}
   when ad > 0.3 && ad <= 0.7
-    actuals = actual.to_s.red
+    fct = lambda {|s| s.red}
   when ad > 0.7 && ad < 1.0
-    actuals = actual.to_s.magenta
+    fct = lambda {|s| s.magenta}
   else
-    actuals = actual.to_s.green
+    fct = lambda {|s| s.green}
   end
-  actuals
+  [actual.to_s,"%3.0f\%" % (ad*100)].map {|s| fct.call(s)}
 end
 
 # Format the output for the screen and print it
@@ -110,15 +117,15 @@ def output_terminal(doc_info)
   unless (doc_info[:goals][:goal_total] == 0)
     total = doc_info[:goals][:goal_total]
     actual = doc_info[:sections][0][:words]
-    actuals = meter(actual,total)
-    puts "Goal, total:        #{actuals} / #{total} words"
+    (actuals,actperc) = meter(actual,total)
+    puts "Goal, total:        #{actperc} #{actuals}/#{total} words"
   end
   unless (doc_info[:goals][:goal_daily] == 0)
     # Coloring the actuals
     daily = doc_info[:goals][:goal_daily]
     actual = doc_info[:today][:end] - doc_info[:today][:start]
-    actuals = meter(actual,daily)
-    puts "Goal, daily:        #{actuals} / #{daily} words"
+    (actuals,actperc) = meter(actual,daily)
+    puts "Goal, daily:        #{actperc} #{actuals}/#{daily} words"
   end
 
   puts "Document structure:"
