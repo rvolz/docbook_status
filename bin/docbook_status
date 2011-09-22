@@ -56,7 +56,13 @@ opts.on('--remarks[=FILTER]', String, 'Show the remarks, comments. Use a keyword
   end
 }
 # TODO Implement planned end date?
-#opts.on('--end[=DATE]', DateTime, 'Goal: planned delivery date') {|val| @end_date = val}
+opts.on('--end[=DATE]', String, 'Goal: planned delivery date, YYYY-MM-DD') {|val|
+  if val.nil?
+    @end_date = nil
+  else
+    @end_date = Date.parse(val)
+  end
+}
 opts.on('--total[=WORDS]',Integer, 'Goal: total number of words') {|val|
   if val.nil?
     @total_words = 0
@@ -108,35 +114,54 @@ end
 # Format the output for the screen and print it
 #
 def output_terminal(doc_info)
+
+  # Header
   puts
   puts "File:               #{doc_info[:file]}"
   puts "Modified:           #{doc_info[:modified]}"
 
-#  puts "Delivery:           #{doc_info[:goals][:start]} - #{doc_info[:goals][:end]}" unless doc_info[:goals][:end].nil?
-
-  unless (doc_info[:goals][:goal_total] == 0)
-    total = doc_info[:goals][:goal_total]
-    actual = doc_info[:sections][0][:words]
-    (actuals,actperc) = meter(actual,total)
-    puts "Goal, total:        #{actperc} #{actuals}/#{total} words"
+  # Goal section
+  gdend = doc_info[:goals][:end]
+  gwtotal = doc_info[:goals][:goal_total]
+  gwdaily = doc_info[:goals][:goal_daily]
+  unless gwtotal == 0
+    tactual = doc_info[:sections][0][:words]
+    (tactuals,tactperc) = meter(tactual,gwtotal)
   end
-  unless (doc_info[:goals][:goal_daily] == 0)
+  unless gwdaily == 0
     # Coloring the actuals
-    daily = doc_info[:goals][:goal_daily]
-    actual = doc_info[:today][:end] - doc_info[:today][:start]
-    (actuals,actperc) = meter(actual,daily)
-    puts "Goal, daily:        #{actperc} #{actuals}/#{daily} words"
+    dactual = doc_info[:today][:end] - doc_info[:today][:start]
+    (dactuals,dactperc) = meter(dactual,gwdaily)
+  end
+  unless gdend.nil?
+    dstart = doc_info[:goals][:start]
+    ddur = (gdend - dstart).round
+    ddiff = (gdend - Date.today).round
+    dsleft = case
+             when ddiff == 0 then 'today'
+             when ddiff > 0 then "#{ddiff} day(s) left"
+             else "#{ddiff} day(s) behind schedule"
+             end
+  end
+  unless (gdend.nil? && gwtotal == 0 && gwdaily == 0)
+    puts "Goals".bold
+    puts "Delivery:           #{dsleft}, #{gdend}" unless gdend.nil?
+    puts "Words, total:       #{tactperc} #{tactuals}/#{gwtotal}" unless gwtotal == 0
+    puts "Words, daily:       #{dactperc} #{dactuals}/#{gwdaily}" unless gwdaily == 0
   end
 
-  puts "Document structure:"
+  # Structure
+  puts
+  puts "Document structure".bold
   puts "%-57.57s %-16s %5s" % ['Title','Tag','Words']
   puts "-"*80
   doc_info[:sections].each do |s|
     puts "%-57.57s %-16s %5d" % [(' ' * s[:level])+s[:title], s[:tag], s[:words]]
   end
+  #Remarks
   if doc_info[:remarks]
     puts
-    puts "Remarks:"
+    puts "Remarks".bold
     puts "%-10s %10s %5s %-52s" % %w[Type File Line Content]
     puts "-"*80
     doc_info[:remarks].each do |r|
