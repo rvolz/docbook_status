@@ -55,7 +55,6 @@ opts.on('--remarks[=FILTER]', String, 'Show the remarks, comments. Use a keyword
     @remarks_filter << val
   end
 }
-# TODO Implement planned end date?
 opts.on('--end[=DATE]', String, 'Goal: planned delivery date, YYYY-MM-DD') {|val|
   if val.nil?
     @end_date = nil
@@ -216,7 +215,6 @@ def demon(file)
   dw = DirectoryWatcher.new @dir, :glob => @glob, :pre_load => true
   dw.interval = 5.0
   dw.stable = 2
-  dw.persist = "dw_state.yml"
   dw.add_observer {|*args|
     args.each {|event|
       if event.type == :stable
