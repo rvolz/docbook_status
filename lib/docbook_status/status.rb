@@ -246,7 +246,7 @@ module DocbookStatus
    #
    def analyze_file
      full_name = File.expand_path(@source)
-     changed  = File.ctime(@source)
+     changed  = File.mtime(@source)
      @doc = XML::Document.file(@source)
      raise ArgumentError, "Error: #{@source} is apparently not DocBook 5." unless is_docbook?(@doc)
      @doc.xinclude if has_xinclude?(@doc)

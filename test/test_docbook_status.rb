@@ -59,7 +59,7 @@ EOI
     dbs = DocbookStatus::Status.new('test/fixtures/book.xml')
     info = dbs.analyze_file
     info[:file].must_equal(File.expand_path('.')+'/test/fixtures/book.xml')
-    #info[:modified].to_s.must_equal('2011-09-27 18:17:10 +0200')
+    info[:modified].to_s.must_equal('2011-09-09 18:20:15 +0200')
   end
 
   it "filters remarks while counting" do
