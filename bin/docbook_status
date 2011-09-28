@@ -87,6 +87,12 @@ opts.on('--outputformat=yaml|json',['json','yaml'],'Return the result in YAML or
 }
 rest = opts.parse(ARGV)
 
+# See, if there is need to track the writing progress.
+def history_on?()
+  (DocbookStatus::History.exists? || @end_date != NOVAL || @total_words != NOVAL || @daily_words != NOVAL)
+end
+
+
 # Color the actuals according to the schema
 #
 # * bold red if <= 30%
@@ -120,35 +126,36 @@ def output_terminal(doc_info)
   puts "Modified:           #{doc_info[:modified]}"
 
   # Goal section
-  gdend = doc_info[:goals][:end]
-  gwtotal = doc_info[:goals][:goal_total]
-  gwdaily = doc_info[:goals][:goal_daily]
-  unless gwtotal == 0
-    tactual = doc_info[:sections][0][:words]
-    (tactuals,tactperc) = meter(tactual,gwtotal)
+  unless doc_info[:goals].nil?
+    gdend = doc_info[:goals][:end]
+    gwtotal = doc_info[:goals][:goal_total]
+    gwdaily = doc_info[:goals][:goal_daily]
+    unless gwtotal == 0
+      tactual = doc_info[:sections][0][:words]
+      (tactuals,tactperc) = meter(tactual,gwtotal)
+    end
+    unless gwdaily == 0
+      # Coloring the actuals
+      dactual = doc_info[:today][:end] - doc_info[:today][:start]
+      (dactuals,dactperc) = meter(dactual,gwdaily)
+    end
+    unless gdend.nil?
+      dstart = doc_info[:goals][:start]
+      ddur = (gdend - dstart).round
+      ddiff = (gdend - Date.today).round
+      dsleft = case
+               when ddiff == 0 then 'today'
+               when ddiff > 0 then "#{ddiff} day(s) left"
+               else "#{ddiff} day(s) behind schedule"
+               end
+    end
+    unless (gdend.nil? && gwtotal == 0 && gwdaily == 0)
+      puts "Goals".bold
+      puts "Delivery:           #{dsleft}, #{gdend}" unless gdend.nil?
+      puts "Words, total:       #{tactperc} #{tactuals}/#{gwtotal}" unless gwtotal == 0
+      puts "Words, daily:       #{dactperc} #{dactuals}/#{gwdaily}" unless gwdaily == 0
+    end
   end
-  unless gwdaily == 0
-    # Coloring the actuals
-    dactual = doc_info[:today][:end] - doc_info[:today][:start]
-    (dactuals,dactperc) = meter(dactual,gwdaily)
-  end
-  unless gdend.nil?
-    dstart = doc_info[:goals][:start]
-    ddur = (gdend - dstart).round
-    ddiff = (gdend - Date.today).round
-    dsleft = case
-             when ddiff == 0 then 'today'
-             when ddiff > 0 then "#{ddiff} day(s) left"
-             else "#{ddiff} day(s) behind schedule"
-             end
-  end
-  unless (gdend.nil? && gwtotal == 0 && gwdaily == 0)
-    puts "Goals".bold
-    puts "Delivery:           #{dsleft}, #{gdend}" unless gdend.nil?
-    puts "Words, total:       #{tactperc} #{tactuals}/#{gwtotal}" unless gwtotal == 0
-    puts "Words, daily:       #{dactperc} #{dactuals}/#{gwdaily}" unless gwdaily == 0
-  end
-
   # Structure
   puts
   puts "Document structure".bold
@@ -175,6 +182,8 @@ end
 # the XInclude-NS, XInclude-processing is started. At last the
 # resulting document is analyzed.
 #
+# If history processing is on the writing progress is recorded.
+#
 def run(file)
   # OPTIMIZE Detailed output for --pre commands with popen4?
   @pre.each { |cmd|
@@ -187,19 +196,21 @@ def run(file)
   dbs = DocbookStatus::Status.new(file)
   doc_info = dbs.analyze_file
   doc_info[:remarks] = dbs.find_remarks(@remarks_filter) if @remarks
-  dbs_h = DocbookStatus::History.new(file)
-  dbs_h.planned_end(@end_date) if @end_date != NOVAL
-  dbs_h.total_words(@total_words) if @total_words != NOVAL
-  dbs_h.daily_words(@daily_words) if @daily_words != NOVAL
-  dbs_h.add(DateTime.now,doc_info[:sections][0][:words])
-  dbs_h.save
-  doc_info[:goals] = dbs_h.goals
-  doc_info[:today] = dbs_h.today
+  if history_on?()
+    dbs_h = DocbookStatus::History.new(file)
+    dbs_h.planned_end(@end_date) if @end_date != NOVAL
+    dbs_h.total_words(@total_words) if @total_words != NOVAL
+    dbs_h.daily_words(@daily_words) if @daily_words != NOVAL
+    dbs_h.add(DateTime.now,doc_info[:sections][0][:words])
+    dbs_h.save
+    doc_info[:goals] = dbs_h.goals
+    doc_info[:today] = dbs_h.today
+  end
   case
   when @output_format == :yaml
     YAML.dump(doc_info,STDOUT)
   when @output_format == :json
-    puts doc_info.to_json
+    STDOUT.puts doc_info.to_json
   else
     output_terminal(doc_info)
   end
@@ -230,6 +241,11 @@ end
 # Print banner if called without arguments
 if rest.length < 1
   puts opts.to_s
+  exit 1
+end
+
+unless File.exists?(rest[0])
+  STDERR.puts "Error: File #{rest[0]} not found."
   exit 1
 end
 
