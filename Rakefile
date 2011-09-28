@@ -14,5 +14,7 @@ Bones {
   email    'dev@textmulch.de'
   url      'http://projekte.textmulch.de/docbook_status/'
   depend_on     'directory_watcher'
-  depend_on     'libxml-ruby', '2.2.2'
+  depend_on     'libxml-ruby'
+  depend_on     'json'
+  depend_on     'term-ansicolor'
 }
