@@ -36,29 +36,9 @@ module DocbookStatus
     # History file, YAML format
     HISTORY_FILE = 'dbs_work.yml'
 
-    # Archive all current entries that are not from today
-    def archive
-      tod = Date.today
-      ah = @history[:current].take_while {|h| h[:timestamp].to_date < tod}
-      dates = ah.group_by {|h| h[:timestamp].to_date}
-      dates.each do |k,v|
-        (minw,maxw) = v.minmax_by {|h| h[:words]}
-        startw = v[0][:words]
-        endw = v[v.length-1][:words]
-        if (@history[:archive][k])
-          @history[:archive][k][:min] = minw if @history[:archive][k][:min] > minw
-          @history[:archive][k][:max] = maxw if @history[:archive][k][:max] < maxw
-          @history[:archive][k][:end] = endw
-          @history[:archive][k][:ctr] += v.length
-        else
-          @history[:archive][k][:min] = minw
-          @history[:archive][k][:max] = maxw
-          @history[:archive][k][:start] = startw
-          @history[:archive][k][:end] = endw
-          @history[:archive][k][:ctr] = v.length
-        end
-      end
-      @history[:current] = @history[:current].drop_while {|h| h[:timestamp].to_date < tod}
+    # Does the history file exist?
+    def self.exists?()
+      File.exists?(HISTORY_FILE)
     end
 
     # Load the exisiting writing history

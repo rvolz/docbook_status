@@ -36,6 +36,13 @@ describe DocbookStatus::History do
     h.goals.must_equal({:start => Date.today, :end=>Date.today+10, :goal_total => 10000, :goal_daily=>1000})
   end
 
+  it "knows when the history file exists" do
+    DocbookStatus::History.exists?.must_equal(false)
+    h = DocbookStatus::History.new('test.xml')
+    h.save
+    DocbookStatus::History.exists?.must_equal(true)
+  end
+
   it "progress can be added" do
     h = DocbookStatus::History.new('test.xml')
     h.history?.must_equal(false)
