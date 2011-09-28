@@ -1,8 +1,10 @@
-== 0.2.2 / ??
+== 0.3.0 / 2011-09-28
 
-* Writing goals (total and daily) can be defined and will be tracked
+* Writing goals (total and daily) can be defined and tracked
 * Added YAML and JSON output formats, available with option --outputformat
 * Minor fixes
+** Removed daemon state persistence file dw_state.yml
+** Colorized screen output
 ** Reorganized library
 
 == 0.2.1 / 2011-09-18
