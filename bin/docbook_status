@@ -168,10 +168,10 @@ def output_terminal(doc_info)
   if doc_info[:remarks]
     puts
     puts "Remarks".bold
-    puts "%-10s %10s %5s %-52s" % %w[Type File Line Content]
+    puts "%-10.10s %10.10s %5s %-52s" % %w[Type File Line Content]
     puts "-"*80
     doc_info[:remarks].each do |r|
-      puts "%-10.10s %10s %5d %-52.52s" % ["#{r[:keyword]}",r[:file],r[:line],r[:text]]
+      puts "%-10.10s %10.10s %5d %-52.52s" % ["#{r[:keyword]}",r[:file],r[:line],r[:text]]
     end
   end
 end
