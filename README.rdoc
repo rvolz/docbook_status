@@ -1,6 +1,6 @@
 = docbook_status
 
-A utility for DocBook authors/publishers showing the document structure (sections) and word count of a DocBook project. It is intended to provide an overview of a DocBook project's structure and volume while you are writing or editing it.
+A utility for DocBook authors/publishers showing the document structure (sections) and word count of a DocBook project. It is intended to provide an overview of a DocBook project's structure and size while you are writing or editing it.
 
 == Features
 
@@ -13,9 +13,9 @@ A utility for DocBook authors/publishers showing the document structure (section
 
 == Synopsis
 
-docbook_status is mainly a comandline application, bin/docbook_status, that helps with writing and editing DocBook 5 documents. The application provides information about the content of a DocBook project. That project can consist of a single file or of several files that are included in the master file via XInclude.
+docbook_status is mainly a comandline application, bin/docbook_status, which helps with writing and editing DocBook 5 documents. The application provides information about the content of a DocBook project. That project can consist of a single file or of several files that are included in the master file via XInclude.
 
-To run docbook_status manually:
+To run docbook_status once, manually:
 
    docbook_status myproject.xml
 
@@ -115,6 +115,10 @@ https://rubygems.org/gems/docbook_status
 == Install
 
 * gem install docbook_status
+
+== Homepage
+
+http://rvolz.github.com/docbook_status/
 
 == License
 
