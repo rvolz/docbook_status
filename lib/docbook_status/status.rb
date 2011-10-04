@@ -205,6 +205,34 @@ module DocbookStatus
      end
    end
 
+   # Helper for sum_sections
+   def sum_lower_sections(secs,start,level)
+     i=start
+     sum = 0
+     while (i < secs.length && secs[i][:level] > level)
+       sum += secs[i][:words]
+       i += 1
+     end
+     [sum,i]
+   end
+
+   # Sum the word counts of lower sections
+   def sum_sections(secs, max_level)
+     0.upto(max_level) do |cur_level|
+       i = 0
+       while i < secs.length
+         if (secs[i][:level] == cur_level)
+           (ctr,ni) = sum_lower_sections(secs, i+1,cur_level)
+           secs[i][:swords] = ctr
+           i = ni
+         else
+           i += 1
+         end
+       end
+     end
+     secs
+   end
+
    # Searches the XML document for sections and word counts. Returns an
    # array of sections (map) with title, word count, section level and DocBook tag.
    #
@@ -218,8 +246,8 @@ module DocbookStatus
      section_type = doc_maps[0][:name]
      section_ctr = 0
      section_level = 0
+     max_section_level = 0
      doc_ctr = 0
-     #puts doc_maps.inspect
      xms = doc_maps.drop(1)
      # Compute word counts per section
      xms.each do |m|
@@ -231,12 +259,17 @@ module DocbookStatus
          section_name = m[:title]
          section_ctr = 0
          section_level = m[:level]
+         max_section_level = m[:level] if (m[:level] > max_section_level)
          section_type = m[:name]
        end
      end
      @sections << {:title => section_name, :words => section_ctr, :level => section_level, :tag => section_type}
-     # Put the document word count near the document type
-     @sections[0][:words] = doc_ctr
+     # OPTIMIZE Not nice, but works
+     @sections = sum_sections(@sections,max_section_level).map {|s|
+       s[:words] = s[:words]+s[:swords];
+       s.delete(:swords)
+       s
+     }
      @sections
    end
 
