@@ -1,6 +1,9 @@
 == 0.4.0 / 2011-10-??
 
-* The word counts displayed are the totals of the respective section, including all its children
+* Minor changes
+** The word counts displayed are now the totals of the respective section, including all its children
+** Changed remarks output, more space for file names and content
+** Changed the homepage to GitHub
 
 == 0.3.0 / 2011-09-28
 
