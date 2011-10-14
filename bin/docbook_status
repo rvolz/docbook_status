@@ -9,11 +9,15 @@
 #
 
 require 'rubygems'
-require "bundler/setup"
 require 'optparse'
 require 'directory_watcher'
 require 'yaml'
-require 'json'
+begin
+  require 'json'
+  @json_available = true
+rescue
+  @json_available = false
+end
 require 'term/ansicolor'
 
 class String
@@ -79,7 +83,13 @@ opts.on('--outputformat=yaml|json',['json','yaml'],'Return the result in YAML or
   when format == 'yaml'
     @output_format = :yaml
   when format == 'json'
-    @output_format = :json
+    if @json_available
+      @output_format = :json
+    else
+      @output_format = :screen
+      STDERR.puts "JSON support not available. Please install the json gem first."
+      exit 1
+    end
   else
     STDERR.puts "Unknown output format #{format}. Using screen output."
     @output = :screen

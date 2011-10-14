@@ -13,8 +13,8 @@ Bones {
   authors  'Rainer Volz'
   email    'dev@textmulch.de'
   url      'http://rvolz.github.com/docbook_status/'
+  ignore_file  '.gitignore'
   depend_on     'directory_watcher'
   depend_on     'libxml-ruby'
-  depend_on     'json'
   depend_on     'term-ansicolor'
 }
