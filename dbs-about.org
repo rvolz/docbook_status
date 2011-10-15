@@ -8,7 +8,7 @@ Sow wie diesen C:/Ruby192/lib/ruby/gems/1.9.1/gems/docbook_status-0.4.1/lib/docb
 us.rb:285:in `xinclude': Error: could not load Z:///VMShared/chapter2.xml, and n
 o fallback was found at Z:/VMShared/book.xml:26. (LibXML::XML::Error)
 
-** TODO Windows XP: Kein ANSI?
+** DONE Windows XP: Kein ANSI?
 
 require 'win32console' einbauen bei Windows. 
 Falls vorhanden wird die Farbe aktiviert, sonst werden die ansicolor-funktionen durch Dummies ersetzt.

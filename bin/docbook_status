@@ -67,10 +67,7 @@ EOB
 
 opts = OptionParser.new
 opts.banner = banner
-opts.on('--demon', 'Keep running, act when files change') {|val| @demon = true}
-opts.on('--glob PATTERN', String, 'File mask for demon mode, default = "*.xml"') {|val| @glob = val}
-opts.on('--dir DIR', String, 'Source directory for demon mode, default = "." ') {|val| @dir = File.expand_path(val)}
-opts.on('--pre COMMAND', String, 'A shell command that should be executed before') {|val| @pre << val}
+opts.on('--pre COMMAND', String, 'A shell command that should be executed first') {|val| @pre << val}
 opts.on('--remarks[=FILTER]', String, 'Show the remarks, comments. Use a keyword FILTER to restrict the listing') {|val|
   @remarks = true
   unless (val.nil? || val.empty?)
@@ -96,7 +93,7 @@ opts.on('--daily[=WORDS]',Integer, 'Goal: daily number of words') {|val|
   else
     @daily_words = val.abs
   end}
-opts.on('--outputformat=yaml|json',['json','yaml'],'Return the result in YAML or JSON format instead of printing it') {|format|
+opts.on('--outputformat=yaml|json',['json','yaml'],'Return the result in YAML or JSON format') {|format|
   case
   when format == 'yaml'
     @output_format = :yaml
@@ -245,28 +242,6 @@ def run(file)
   end
 end
 
-
-# Demon routine for continuous processing of a DocBook document.
-# This routine calls _run_ whenever the filesystem signals changes. To
-# reduce load it waits for a defined time (interval * stable) before
-# starting the actual processing.
-#
-def demon(file)
-  dw = DirectoryWatcher.new @dir, :glob => @glob, :pre_load => true
-  dw.interval = 5.0
-  dw.stable = 2
-  dw.add_observer {|*args|
-    args.each {|event|
-      if event.type == :stable
-        run(file)
-      end
-    }
-  }
-  dw.start    # loads state from dw_state.yml
-  STDIN.gets  # when the user hits "enter" the script will terminate
-  dw.stop     # stores state to dw_state.yml
-end
-
 # Print banner if called without arguments
 if rest.length < 1
   puts opts.to_s
@@ -281,7 +256,5 @@ end
 # The main routine
 puts("docbook_status, Version #{DocbookStatus.version}") if @output_format == :screen
 run(rest[0])
-if (@demon)
-  demon(rest[0])
-end
 exit 0
+
