@@ -3,25 +3,43 @@
 ##
 # docbook_status is the commandline application for the library.  Its
 # main purpose is to display the structure and word counts for DocBook
-# 5 documents. docbook_status can be used in single-run mode or
-# demon-mode. In demon-mode it stays active and looks for changes in
-# the filesystem.
+# 5 documents.
 #
 
 require 'rubygems'
 require 'optparse'
-require 'directory_watcher'
 require 'yaml'
+require 'zucker/env'
+# For Windows and/or Ruby 1.8
 begin
   require 'json'
   @json_available = true
-rescue
+rescue LoadError
   @json_available = false
 end
-require 'term/ansicolor'
 
-class String
-  include Term::ANSIColor
+# Windows (RubyInstaller) needs the additional gem.
+# If not present create dummies for the color routines.
+if OS.windows?
+  begin
+    require 'win32console'
+    require 'term/ansicolor'
+    class String
+      include Term::ANSIColor
+    end
+  rescue LoadError
+    class String
+      def red; self; end
+      def green; self; end
+      def magenta; self; end
+      def bold; self; end
+    end
+  end
+else
+  require 'term/ansicolor'
+  class String
+    include Term::ANSIColor
+  end
 end
 
 require File.expand_path(File.join(File.dirname(__FILE__), %w[.. lib docbook_status]))

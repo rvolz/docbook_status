@@ -14,7 +14,8 @@ Bones {
   email    'dev@textmulch.de'
   url      'http://rvolz.github.com/docbook_status/'
   ignore_file  '.gitignore'
-  depend_on     'directory_watcher'
+  exclude       << 'dbs-about.org'
   depend_on     'libxml-ruby'
   depend_on     'term-ansicolor'
+  depend_on     'zucker'
 }
