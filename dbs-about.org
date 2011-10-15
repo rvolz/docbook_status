@@ -13,6 +13,11 @@ o fallback was found at Z:/VMShared/book.xml:26. (LibXML::XML::Error)
 require 'win32console' einbauen bei Windows. 
 Falls vorhanden wird die Farbe aktiviert, sonst werden die ansicolor-funktionen durch Dummies ersetzt.
 
+** Linux: UTF-8 Probleme bei Umlaut-Ausgabe?
+
+Die Zeilen mit Umlauten sind 1 Zeichen pro Umlaut zu kurz. Da stimmt
+was mit der Zählung nicht.
+
 ** TODO Windows XP: directory_watcher funktioniert nicht
 
 Herausnehmen. Gehört nicht zur Kernfunktion. Stattdessen guard für docbook_status bereitstellen. Damit können die Anwender Guard so konfigurieren, wie sie es möchten.

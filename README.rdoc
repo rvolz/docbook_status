@@ -15,7 +15,7 @@ A utility for DocBook authors/publishers showing the document structure (section
 
 docbook_status is mainly a comandline application, bin/docbook_status, which helps with writing and editing DocBook 5 documents. The application provides information about the content of a DocBook project. That project can consist of a single file or of several files that are included in the master file via XInclude.
 
-To run docbook_status once, manually:
+To run docbook_status:
 
    docbook_status myproject.xml
 
@@ -36,12 +36,6 @@ If you need to preprocess the XML before feeding it to docbook_status, there is 
    docbook_status --pre "asciddoc -bdocbook50 myproject.txt" myproject.xml
 
 --pre takes shell commands as arguments and executes them before starting the analysis on the XML file.
-
-Finally, if you are tired to run docbook_status manually each time you changed your file, you could run the application in demon mode, continually:
-
-   docbook_status --demon --glob "*.xml" --dir "." myproject.xml
-
-In demon-mode the application checks the files matched by the _glob_ pattern in the directory specified by _dir_ for changes, and redisplays the document analysis whenever a change occures. The demon can be terminated by simply pressing RETURN.
 
 == Tracking writing progress
 
@@ -111,6 +105,8 @@ https://rubygems.org/gems/docbook_status
 == Requirements
 
 * libxml2
+* json (optional, install the gem if you want JSON output for Ruby 1.8)
+* win32console (optional, install the gem if you want color support on MS Windows)
 
 == Install
 

@@ -1,4 +1,9 @@
-== 0.5.0 / 2011-10-??
+== 0.5.0 / 2011-10-15
+
+* Removed the daemon functionality, it didn't work across platforms. Use Guard instead.
+* Improved the platform compatibility. Should now work better on Windows.
+* Color support is now optional on Windows. Is switched on if gem 'win32console' is available.
+* JSON support is now optional. Is switched on if the json library (1.9) or gem (1.8) is available.
 
 == 0.4.0 / 2011-10-04
 
