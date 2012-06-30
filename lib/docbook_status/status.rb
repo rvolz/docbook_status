@@ -15,6 +15,14 @@ module DocbookStatus
    #
    XINCLUDE_NS = 'http://www.w3.org/2001/XInclude'
 
+   # Standard remark keyword, if there is none entered
+   #
+   STD_REMARK = 'REMARK'
+
+   # Standard remark text for remarks without content
+   #
+   EMPTY_REMARK = '-- EMPTY REMARK --'
+
    # Elements whose contents is counted as text. The _formalpara_
    # elements are included implicitly because they contain _para_ child
    # elements.
@@ -168,13 +176,15 @@ module DocbookStatus
      rems = doc.find('//db:remark')
      rems.map {|rem|
        c = rem.content.strip
-       kw = 'REMARK'
-       if rem.first.text?
+       kw = STD_REMARK
+       unless c.empty?
          kw1 = c.match('^([[:upper:]]+)([[:space:][:punct:]]|$)')
          unless kw1.nil?
            kw = kw1[1]
            c = kw1.post_match.lstrip
          end
+       else
+         c = EMPTY_REMARK
        end
        # TODO XPath integrieren? :path => rem.path, :parent => rem.parent.path,
        {:keyword => kw, :text => c, :file=>source, :line => rem.line_num}
@@ -182,6 +192,9 @@ module DocbookStatus
    end
 
    # Finds the remarks by looking through all the Xincluded files
+   # 
+   # The remarks returned can be filtered by keyword if an keyword array is 
+   # passed as an argument.
    #
    def find_remarks(filter=[])
      if (@source.nil?)

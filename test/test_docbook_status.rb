@@ -91,7 +91,6 @@ EOI
     dbs = DocbookStatus::Status.new('test/fixtures/book.xml')
     info = dbs.analyze_file
     info[:file].must_equal(File.expand_path('.')+'/test/fixtures/book.xml')
-    #info[:modified].to_s.must_equal('2011-09-09 18:20:15 +0200')
   end
 
   it "filters remarks while counting" do
@@ -113,10 +112,23 @@ EOI
   it "finds remarks" do
     dbs = DocbookStatus::Status.new('test/fixtures/book.xml')
     all_remarks = dbs.find_remarks
-    #all_remarks = dbs.remarks()
     all_remarks.must_equal([{:keyword=>"REMARK", :text=>"Blindtext auswechseln", :file=>"book.xml", :line=>15}, {:keyword=>"FIXME", :text=>"Ausbauen.", :file=>"chapter2.xml", :line=>6}])
     fixmes = dbs.remarks('FIXME')
     fixmes.must_equal([{:keyword=>"FIXME", :text=>"Ausbauen.", :file=>"chapter2.xml", :line=>6}])
+  end
+
+  describe "with problematic remarks" do
+    it "can deal with empty remarks" do
+      dbs = DocbookStatus::Status.new('test/fixtures/book-remarks.xml')
+      all_remarks = dbs.find_remarks
+      all_remarks.length.must_equal(4)
+    end
+    it "signals empty remarks" do
+      dbs = DocbookStatus::Status.new('test/fixtures/book-remarks.xml')
+      all_remarks = dbs.find_remarks
+      empties = all_remarks.select {|r| r[:text] == DocbookStatus::Status::EMPTY_REMARK}
+      empties.length.must_equal(3)
+    end
   end
 
 end
