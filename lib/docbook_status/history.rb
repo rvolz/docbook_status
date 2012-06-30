@@ -71,10 +71,12 @@ module DocbookStatus
 
     # Add to the history
     def add(ts,word_count)
-      # FIXME add demon mode
-      #@history[:current] << progress
-      #archive
-      k = ts.to_date
+      # Ruby 1.8 doesn't have DateTime#to_date, so we check that here
+      begin
+        k = ts.to_date
+      rescue NoMethodError
+        k = Date.parse(ts.to_s)
+      end
       unless (@history[:archive][k].nil?)
         @history[:archive][k][:min] = word_count if @history[:archive][k][:min] > word_count
         @history[:archive][k][:max] = word_count if @history[:archive][k][:max] < word_count
