@@ -120,7 +120,7 @@ http://rvolz.github.com/docbook_status/
 
 The MIT License
 
-Copyright (c) 2011 Rainer Volz
+Copyright (c) 2011-12 Rainer Volz
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
