@@ -12,7 +12,7 @@ Bones {
   name     'docbook_status'
   authors  'Rainer Volz'
   email    'dev@textmulch.de'
-  url      'http://rvolz.github.com/docbook_status/'
+  url      'http://projekte.textmulch.de/docbook_status/'
   ignore_file  '.gitignore'
   exclude       << 'dbs-about.org'
   depend_on     'libxml-ruby'

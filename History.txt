@@ -1,3 +1,7 @@
+== 1.0.1 / 2012-12-23
+
+* Updated documentation url
+
 == 1.0.0 / 2012-07-04
 
 * Updated version to 1.0, 0.5 had few and tiny bug reports 
