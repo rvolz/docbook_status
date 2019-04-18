@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    docbook_status (1.2.0)
+    docbook_status (1.1.0)
       libxml-ruby (~> 2)
       os (~> 1)
       sugar_refinery (~> 1)
