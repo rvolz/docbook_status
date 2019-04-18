@@ -3,6 +3,7 @@ PATH
   specs:
     docbook_status (1.2.0)
       libxml-ruby (~> 2)
+      os (~> 1)
       sugar_refinery (~> 1)
       term-ansicolor (~> 1)
 
@@ -12,6 +13,7 @@ GEM
     gem-release (1.0.0)
     libxml-ruby (2.9.0)
     minitest (5.11.3)
+    os (1.0.0)
     rake (12.3.2)
     sugar_refinery (1.0.0)
     term-ansicolor (1.7.1)

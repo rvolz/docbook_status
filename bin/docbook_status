@@ -9,8 +9,8 @@
 require 'rubygems'
 require 'optparse'
 require 'yaml'
-require 'zucker/env'
-# For Windows and/or Ruby 1.8
+require 'os'
+# For Windows
 begin
   require 'json'
   @json_available = true
@@ -58,9 +58,9 @@ NOVAL = -1
 @end_date = NOVAL
 
 banner = <<EOB
-docbook_status, Version #{DocbookStatus.version}
+docbook_status, Version #{DocbookStatus::VERSION}
 
-Display DocBook 5 document structure and word counts.
+Show DocBook5 document structure and word counts.
 
 Usage: docbook_status [options] <DOCBOOK-FILE>
 EOB
@@ -75,25 +75,25 @@ opts.on('--remarks[=FILTER]', String, 'Show the remarks, comments. Use a keyword
   end
 }
 opts.on('--end[=DATE]', String, 'Goal: planned delivery date, YYYY-MM-DD') {|val|
-  if val.nil?
-    @end_date = nil
+  @end_date = if val.nil?
+    nil
   else
-    @end_date = Date.parse(val)
-  end
+    Date.parse(val)
+              end
 }
-opts.on('--total[=WORDS]',Integer, 'Goal: total number of words') {|val|
-  if val.nil?
-    @total_words = 0
+opts.on('--total[=WORDS]', Integer, 'Goal: total number of words') {|val|
+  @total_words = if val.nil?
+    0
   else
-    @total_words = val.abs
-  end}
-opts.on('--daily[=WORDS]',Integer, 'Goal: daily number of words') {|val|
-  if val.nil?
-    @daily_words = 0
+    val.abs
+                 end}
+opts.on('--daily[=WORDS]', Integer, 'Goal: daily number of words') {|val|
+  @daily_words = if val.nil?
+    0
   else
-    @daily_words = val.abs
-  end}
-opts.on('--outputformat=yaml|json',['json','yaml'],'Return the result in YAML or JSON format') {|format|
+    val.abs
+                 end}
+opts.on('--outputformat=yaml|json', ['json', 'yaml'], 'Return the result in YAML or JSON format') {|format|
   case
   when format == 'yaml'
     @output_format = :yaml
@@ -125,20 +125,19 @@ end
 # * magenta if >70 and < 100%
 # * green if >= 100%
 #
-def meter(actual,goal)
+def meter(actual, goal)
   ad = actual.to_f / goal.to_f
-  percs = ""
-  case
-  when ad <= 0.3
-    fct = lambda {|s| s.red.bold}
-  when ad > 0.3 && ad <= 0.7
-    fct = lambda {|s| s.red}
-  when ad > 0.7 && ad < 1.0
-    fct = lambda {|s| s.magenta}
-  else
-    fct = lambda {|s| s.green}
-  end
-  [actual.to_s,"%3.0f\%" % (ad*100)].map {|s| fct.call(s)}
+  fct = case
+          when ad <= 0.3
+            ->(s) { s.red.bold}
+          when ad > 0.3 && ad <= 0.7
+            ->(s) { s.red}
+          when ad > 0.7 && ad < 1.0
+            ->(s) { s.magenta}
+          else
+            ->(s) { s.green}
+        end
+  [actual.to_s, format("%3.0f\%%", (ad*100))].map {|s| fct.call(s)}
 end
 
 # Format the output for the screen and print it
@@ -157,12 +156,12 @@ def output_terminal(doc_info)
     gwdaily = doc_info[:goals][:goal_daily]
     unless gwtotal == 0
       tactual = doc_info[:sections][0][:words]
-      (tactuals,tactperc) = meter(tactual,gwtotal)
+      (tactuals, tactperc) = meter(tactual, gwtotal)
     end
     unless gwdaily == 0
       # Coloring the actuals
       dactual = doc_info[:today][:end] - doc_info[:today][:start]
-      (dactuals,dactperc) = meter(dactual,gwdaily)
+      (dactuals, dactperc) = meter(dactual, gwdaily)
     end
     unless gdend.nil?
       dstart = doc_info[:goals][:start]
@@ -184,20 +183,20 @@ def output_terminal(doc_info)
   # Structure
   puts
   puts "Document structure".bold
-  puts "%-57.57s %-16s %5s" % ['Title','Tag','Words']
+  puts format("%-57.57s %-16s %5s", 'Title', 'Tag', 'Words')
   puts "-"*80
   doc_info[:sections].each do |s|
-    puts "%-57.57s %-16s %5d" % [(' ' * s[:level])+s[:title], s[:tag], s[:words]]
+    puts format("%-57.57s %-16s %5d", (' ' * s[:level])+s[:title], s[:tag], s[:words])
   end
   #Remarks
   if doc_info[:remarks]
     puts
     puts "Remarks".bold
-    puts "%-10.10s %20.20s %5s %-52s" % %w[Type File Line Content]
+    puts format("%-10.10s %20.20s %5s %-52s", Type, File, Line, Content)
     puts "-"*80
     doc_info[:remarks].each do |r|
-      puts "%-10.10s %20.20s %5d %-42.42s" % ["#{r[:keyword]}",r[:file],r[:line],r[:text]]
-      puts "%s %-42.42s" % [' '*37,r[:text][42..84]] if r[:text].length > 42
+      puts format("%-10.10s %20.20s %5d %-42.42s", "#{r[:keyword]}", r[:file], r[:line], r[:text])
+      puts format("%s %-42.42s", ' '*37, r[:text][42..84]) if r[:text].length > 42
     end
   end
 end
@@ -227,14 +226,14 @@ def run(file)
     dbs_h.planned_end(@end_date) if @end_date != NOVAL
     dbs_h.total_words(@total_words) if @total_words != NOVAL
     dbs_h.daily_words(@daily_words) if @daily_words != NOVAL
-    dbs_h.add(DateTime.now,doc_info[:sections][0][:words])
+    dbs_h.add(DateTime.now, doc_info[:sections][0][:words])
     dbs_h.save
     doc_info[:goals] = dbs_h.goals
     doc_info[:today] = dbs_h.today
   end
   case
   when @output_format == :yaml
-    YAML.dump(doc_info,STDOUT)
+    YAML.dump(doc_info, STDOUT)
   when @output_format == :json
     STDOUT.puts doc_info.to_json
   else
@@ -254,7 +253,7 @@ unless File.exists?(rest[0])
 end
 
 # The main routine
-puts("docbook_status, Version #{DocbookStatus.version}") if @output_format == :screen
+puts("docbook_status, Version #{DocbookStatus::VERSION}") if @output_format == :screen
 run(rest[0])
 exit 0
 
