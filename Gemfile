@@ -1,8 +1,4 @@
-source "http://rubygems.org"
-gem "libxml-ruby", "~> 2.2.2", :require => 'xml'
-gem "term-ansicolor"
-gem "zucker"
+source 'https://rubygems.org'
 
-group :development do
-  gem "bones"
-end
+# Specify your gem's dependencies in AdProcessors.gemspec
+gemspec
