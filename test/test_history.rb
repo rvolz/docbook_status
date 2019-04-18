@@ -16,7 +16,7 @@ describe DocbookStatus::History do
     history = YAML.load_file(DocbookStatus::History::HISTORY_FILE)
     history[:file].must_equal('test.xml')
     history[:goal][:start].must_equal(Date.today)
-    history[:goal][:end].must_equal(nil)
+    assert_nil history[:goal][:end]
     history[:goal][:goal_total].must_equal(0)
     history[:goal][:goal_daily].must_equal(0)
   end
