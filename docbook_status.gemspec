@@ -21,13 +21,15 @@ Gem::Specification.new do |spec|
     raise 'RubyGems 2.0 or newer is required to protect against public gem pushes.'
   end
 
-  spec.files         = Dir.glob('lib/**/*')
+  spec.required_ruby_version = '~> 2.5'
+
+  spec.files         = Dir.glob(['lib/**/*','bin/**/*'])
   spec.files         += %w{README.md CHANGELOG.md LICENSE.md}
-  spec.bindir        = 'exe'
-  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
+  spec.bindir        = 'bin'
+  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_runtime_dependency 'libxml-ruby', '~> 2'
+  spec.add_runtime_dependency 'libxml-ruby', '~> 2.9'
   spec.add_runtime_dependency 'term-ansicolor', '~> 1'
   spec.add_runtime_dependency 'os', '~> 1'
 

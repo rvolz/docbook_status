@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     docbook_status (1.1.0)
-      libxml-ruby (~> 2)
+      libxml-ruby (~> 2.9)
       os (~> 1)
       term-ansicolor (~> 1)
 
