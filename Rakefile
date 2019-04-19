@@ -1,21 +1,10 @@
-#-*- encoding: utf-8 ; mode:ruby -*-
-begin
-  require 'bones'
-rescue LoadError
-  abort '### Please install the "bones" gem ###'
+require "bundler/gem_tasks"
+require "rake/testtask"
+
+Rake::TestTask.new(:test) do |t|
+  t.libs << "test"
+  t.libs << "lib"
+  t.test_files = FileList['test/**/test_*.rb']
 end
 
-task :default => 'test:run'
-task 'gem:release' => 'test:run'
-
-Bones {
-  name     'docbook_status'
-  authors  'Rainer Volz'
-  email    'dev@textmulch.de'
-  url      'http://projekte.textmulch.de/docbook_status/'
-  ignore_file  '.gitignore'
-  exclude       << 'dbs-about.org'
-  depend_on     'libxml-ruby'
-  depend_on     'term-ansicolor'
-  depend_on     'zucker'
-}
+task :default => :test

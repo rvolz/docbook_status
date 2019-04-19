@@ -1,22 +1,32 @@
-GEM
-  remote: http://rubygems.org/
+PATH
+  remote: .
   specs:
-    bones (3.8.0)
-      little-plugger (~> 1.1.3)
-      loquacious (~> 1.9.1)
-      rake (>= 0.8.7)
-    libxml-ruby (2.2.2)
-    little-plugger (1.1.3)
-    loquacious (1.9.1)
-    rake (10.0.3)
-    term-ansicolor (1.0.7)
-    zucker (12.1)
+    docbook_status (1.1.0)
+      libxml-ruby (~> 2.9)
+      os (~> 1)
+      term-ansicolor (~> 1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    gem-release (1.0.0)
+    libxml-ruby (2.9.0)
+    minitest (5.11.3)
+    os (1.0.0)
+    rake (12.3.2)
+    term-ansicolor (1.7.1)
+      tins (~> 1.0)
+    tins (1.20.2)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  bones
-  libxml-ruby (~> 2.2.2)
-  term-ansicolor
-  zucker
+  bundler (~> 1.16)
+  docbook_status!
+  gem-release (~> 1.0)
+  minitest (~> 5.0)
+  rake (~> 12)
+
+BUNDLED WITH
+   1.16.2
